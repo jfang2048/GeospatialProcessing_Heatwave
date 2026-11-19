@@ -1,22 +1,41 @@
-# Repository instructions for people and coding agents
+# Contribution rules
 
-## Task boundaries
+Read the [v1 contract](contracts/v1.md) and your module's AGENTS.md before editing. Each owner maintains their module's code, tests, fixtures and documentation.
 
-Read this file, [the contract](contracts/v1.md), and the AGENTS.md inside your assigned directory before editing. Your module owns its implementation, tests, fixtures and its own README. You may read and run other modules. Limit your commits to the paths assigned below.
-
-| Owner | Source and test paths | Work branch |
+| Owner | Module | Branch |
 | --- | --- | --- |
 | FJ | `heatwave/ingest/` | `ingest/<task>` |
 | YY | `heatwave/events/` | `events/<task>` |
 | FY | `heatwave/footprints/` | `footprints/<task>` |
 
-FJ is the proposed integration owner and uses an `integration/<task>` branch for `README.md`, root `AGENTS.md`, `environment.yml`, `.gitignore`, `pyproject.toml`, `heatwave/__init__.py`, `contracts/`, `integration/`, `notebooks/` and `.github/`. Report integration edits through an issue or PR review comment. Ask the integration owner to handle dependency changes or shared fixture updates. Each person writes and tests their module independently against the frozen contract and small fixtures.
+FJ owns shared files and dependencies on `integration/<task>` branches. Use issues or PR reviews to request shared changes. For a handoff change, include a failing example, affected inputs and outputs, and the proposed contract revision. The integration owner versions the contract after the affected owners agree.
+
+## Public repository checklist
+
+Use team initials `FJ`, `FY` or `YY` in files, notebooks, commit messages, Git identities, and GitHub discussions. Keep member full names, personal email addresses, personal filesystem paths, credentials, private links, raw provider downloads, and run artifacts in local or approved private storage. Publish synthetic fixtures and sanitized manifests. Share private snapshot links through the team's private channel.
+
+Configure your identity once per clone. Substitute your assigned initials and the matching placeholder email. This example is for FJ.
+
+```bash
+git config --local user.name FJ
+git config --local user.email fj@project.invalid
+git var GIT_AUTHOR_IDENT
+git var GIT_COMMITTER_IDENT
+```
+
+Before every push, fetch and review the files and **every outgoing commit** on the current branch from the repository root.
+
+```bash
+git fetch origin
+git status --short
+git log --no-use-mailmap --format=fuller --stat -m -p origin/main..HEAD
+```
+
+- Review each ref separately when pushing multiple branches or tags. Check author and committer names and emails in each commit. Check commit messages, filenames and diffs for private information, including lines removed in later commits. Open changed binary files and inspect their metadata. Review notebook cells, outputs and metadata.
+- Fix the commit that contains a finding and rerun the checks before pushing. If private information has already reached GitHub, notify the team privately and rotate any exposed credentials. Coordinate history cleanup with the integration owner.
 
 ## Work and merge rules
 
-1. Start from the current `main` and make one PR for one task. Before opening the PR, inspect `git diff --name-only origin/main...HEAD` after `git fetch origin`. Run your own module tests and post the command and outcome.
-2. If a change requires another owner's files, leave a note containing the failing test or example, input and output impact, and proposed contract revision. The path owner makes the change. For a cross-module contract change, get agreement from affected owners and let the integration owner update the versioned contract first.
-3. Treat stage outputs as immutable inputs to the next stage. Each module accepts paths explicitly and writes its own outputs. Use separate run directories for experiments and temporary files. Scope formatters, bulk renames, cleanup, and generated edits to your paths.
-4. In PRs, record source version or fixture, units, CRS, date range, and known limitations as applicable. A teammate reviews each change. After merging, the affected owners check the next handoff.
-5. Commit code, fixtures built for tests, environment, schemas and manifests for approved snapshots. Keep raw provider downloads, experiment output and CDS credentials out of Git. Use synthetic inputs in tests and CI.
-6. For GitHub review routing, substitute verified GitHub handles in the [CODEOWNERS example](integration/CODEOWNERS.example) and install it at `.github/CODEOWNERS`. A repository administrator can then require code owner review through a branch protection rule if available. Code ownership routes review. Module scope still applies to every contributor and agent.
+1. Start each task from current `main` and open one PR. Run your module tests and include the command and result. Use synthetic inputs in tests and CI.
+2. Treat stage outputs as immutable inputs to the next module. Pass paths explicitly and use separate run directories. Keep edits within your owned paths.
+3. Record the source version or fixture, units, CRS, date range and limitations as applicable. A teammate reviews each PR. After merging, affected owners verify the next handoff.
