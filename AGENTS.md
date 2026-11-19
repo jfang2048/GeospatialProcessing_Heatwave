@@ -1,12 +1,12 @@
 # Contribution rules
 
-Read the [v1 contract](contracts/v1.md) and your module's AGENTS.md before editing. Each owner maintains their module's code, tests, fixtures and documentation.
+Each owner maintains their module's code, tests, fixtures, and documentation. Use the [v1 contract](contracts/v1.md) for file handoffs and acceptance checks.
 
-| Owner | Module | Branch |
-| --- | --- | --- |
-| FJ | `heatwave/ingest/` | `ingest/<task>` |
-| YY | `heatwave/events/` | `events/<task>` |
-| FY | `heatwave/footprints/` | `footprints/<task>` |
+| Owner | Module | Branch | Starting point |
+| --- | --- | --- | --- |
+| FJ | `heatwave/ingest/` | `ingest/<task>` | [CDS pilot and snapshot guide](heatwave/ingest/README.md) |
+| YY | `heatwave/events/` | `events/<task>` | [Baseline and target fixtures](integration/fixtures/README.md) |
+| FY | `heatwave/footprints/` | `footprints/<task>` | [Events fixture](integration/fixtures/README.md) |
 
 FJ owns shared files and dependencies on `integration/<task>` branches. Use issues or PR reviews to request shared changes. For a handoff change, include a failing example, affected inputs and outputs, and the proposed contract revision. The integration owner versions the contract after the affected owners agree.
 

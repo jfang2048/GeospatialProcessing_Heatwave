@@ -1,13 +1,5 @@
 # Proposed work plan
 
-Each owner delivers Python functions, a command or usage example, tests, and documentation for their module.
-
-| Owner | Work directory | Deliverable | Acceptance criteria |
-| --- | --- | --- | --- |
-| FJ | `heatwave/ingest/` | Provider retrieval, NetCDF normalization, exact date and grid validation, and input provenance. Also owns shared integration on a separate branch. | Seven day CDS pilot and normalized cube; verified checksums; K to °C and invalid input tests; fully hydrated baseline and target or an explicit data availability report. |
-| YY | `heatwave/events/` | Calendar P90, strict consecutive run detector and `events.nc`. | Independent tests for known percentile, missing values, gaps, equality, three day inclusion and summer boundary; output conforms to v1. |
-| FY | `heatwave/footprints/` | Daily component labelling, latitude dependent cell areas, per component summary and `footprints.nc` plus CSV. | Synthetic edge/diagonal checks, deterministic IDs, consistent areas and a known peak excess; output conforms to v1. |
-
 ## Milestones
 
 | Target | Who can work independently | Exit criterion |
@@ -18,18 +10,16 @@ Each owner delivers Python functions, a command or usage example, tests, and doc
 | 10 Dec | FJ integrates. All review outputs and compare their hand calculations with the notebook. | Clean install, synthetic end to end run, then full real case with verified input manifest when available. |
 | 14 Dec project work session | All | Each member explains the path from raw input to P90, duration and footprint area. Check contributions and complete the submission. |
 
-Use the [contribution rules](../AGENTS.md) for handoff changes and PRs. Check every outgoing commit against the [public repository checklist](../AGENTS.md#public-repository-checklist).
+See the [v1 contract](../contracts/v1.md) for acceptance checks and the [contribution rules](../AGENTS.md) for module ownership and push checks.
 
 ## Integration commands
 
-From the repository root:
+Activate the [project environment](../README.md#run-the-starter), then run these commands from the repository root.
 
 ```bash
-conda env create -f environment.yml
-conda activate gprocessing-heatwave
-python -m pip install -e . --no-deps
 python -m pytest -q -p no:cacheprovider
-jupyter nbconvert --to notebook --execute --stdout notebooks/00_fixture.ipynb > /tmp/gprocessing-heatwave-fixture.ipynb
+mkdir -p runs/fixture
+jupyter nbconvert --to notebook --execute --stdout notebooks/00_fixture.ipynb > runs/fixture/00_fixture.ipynb
 ```
 
 Use the [synthetic NetCDF handoffs](fixtures/README.md) until the real-case interfaces are ready. Write outputs under `runs/<name>/`.

@@ -1,5 +1,0 @@
-# Substitute the three verified GitHub handles before installing.
-* @INGEST_GITHUB_HANDLE
-/heatwave/ingest/ @INGEST_GITHUB_HANDLE
-/heatwave/events/ @EVENTS_GITHUB_HANDLE
-/heatwave/footprints/ @FOOTPRINTS_GITHUB_HANDLE
