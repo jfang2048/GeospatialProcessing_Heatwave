@@ -14,7 +14,7 @@ conda activate gprocessing-heatwave
 jupyter lab
 ```
 
-Open the [synthetic notebook](notebooks/00_fixture.ipynb) for a worked example. Use the [synthetic fixtures](integration/fixtures/README.md) to develop and test each stage independently. Follow the [ingest guide](heatwave/ingest/README.md) for the CDS pilot and real data. The [work plan](integration/WORKPLAN.md) covers integration and submission.
+Open the [synthetic notebook](notebooks/00_fixture.ipynb) for a worked example. Use the [synthetic fixtures](integration/fixtures/README.md) to develop and test each stage independently. Follow the [ingest guide](heatwave/ingest/README.md) for the CDS pilot and real data. The [automated pipeline specification](integration/WORKPLAN.md#automated-pipeline) defines the planned one-command offline and Milan runs, from provider data to an executed report.
 
 ## Method references
 
