@@ -24,4 +24,13 @@ jupyter nbconvert --to notebook --execute --stdout notebooks/00_fixture.ipynb > 
 
 Use the [synthetic NetCDF handoffs](fixtures/README.md) until the real-case interfaces are ready. Write outputs under `runs/<name>/`.
 
+## End-to-end acceptance
+
+FJ runs the following checks from a clean checkout after the three planned [stage commands](../contracts/v1.md#proposed-command-interfaces) land. Record the commit, environment versions, input identifiers and hashes, commands, results, and any unavailable real data in the integration PR.
+
+1. Start offline with a small synthetic provider cache and matching request manifests. FJ supplies the cache in the integration test. Exercise the production normalizer on the requested periods and pass its actual outputs to Events, then pass the resulting event file to Footprints. Run the stages as separate CLI processes in order and stop on the first failure.
+2. Independently exercise the two downstream commands with the [committed fixtures](fixtures/README.md). Compare Events with the reference event cube, then compare Footprints with the hand-labelled CSV for every listed date and cell. Check dimensions, dates, integer flags and IDs exactly. Compare floating values with the v1 fixture tolerances and matching NaN positions. Check daily area conservation and all CSV/raster keys across the full summer.
+3. Repeat with identical inputs in a fresh directory. Compare decoded arrays and CSV values, and verify input hashes remain stable. Inject a corrupt input and an incompatible grid in separate runs. Verify that each fails at the consuming stage and that later stages do not start.
+4. For the Milan run, verify the versioned snapshot hashes, 1991–2020 baseline, 2022 target, and grid coverage. Execute the demonstration notebook against the generated files and report reference coverage, unknown cells and the peak-area day. Record synthetic and real-case results separately. The current fixture notebook checks hand-worked values.
+
 For submission, provide the repository, source and environment, documentation, a sample, and tests. Enter the team details, tentative title, and repository URL in the course spreadsheet. Confirm the exam call in WeBeep and count back nine calendar days to the last eligible repository change.

@@ -10,6 +10,15 @@ Each owner maintains their module's code, tests, fixtures, and documentation. Us
 
 FJ owns shared files and dependencies on `integration/<task>` branches. Use issues or PR reviews to request shared changes. For a handoff change, include a failing example, affected inputs and outputs, and the proposed contract revision. The integration owner versions the contract after the affected owners agree.
 
+A module PR may change only files under its owner's module directory. FJ uses a separate integration PR for root files, dependencies, `contracts/`, `integration/`, and `notebooks/`. Shared fixtures and expected results belong to integration. Before review, run `git fetch origin` and inspect `git diff --name-status origin/main...HEAD`, including both paths of renames. Route any out-of-scope edit to its owner.
+
+## Module acceptance
+
+- Give the stage a callable Python interface with explicit paths and parameters. Keep argument parsing, file I/O and scientific rules separate enough to test each rule on a small array. Exchange versioned files across modules. Keep imports and tests independent of sibling modules' private functions.
+- Validate the [file contract](contracts/v1.md) on entry and before publishing output. Treat inputs as read-only. Close files on success and failure. Process the full case within a documented memory budget, carrying the necessary time window or spatial context across chunk boundaries if processing in chunks.
+- Exercise the public CLI in a temporary run directory. Cover a valid input, a scientific boundary, a malformed input, and a failed write followed by a retry. Check exit status, diagnostics, output values and input integrity. Use fixed offline fixtures and independent expected values.
+- Include reproduction commands and test results in the PR. A teammate checks ownership, file compatibility and the error path. For a bug fix, add a case that fails on the old behavior. Record any new dependency in a separate integration change with its purpose and supported version.
+
 ## Public repository checklist
 
 Use team initials `FJ`, `FY` or `YY` in files, notebooks, commit messages, Git identities, and GitHub discussions. Keep member full names, personal email addresses, personal filesystem paths, credentials, private links, raw provider downloads, and run artifacts in local or approved private storage. Publish synthetic fixtures and sanitized manifests. Share private snapshot links through the team's private channel.
