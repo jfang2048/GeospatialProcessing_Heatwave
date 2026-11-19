@@ -1,0 +1,17 @@
+[build-system]
+requires = ["setuptools>=69"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "gprocessing-heatwave"
+version = "0.1.0"
+description = "A course project for analysing daily regional heatwave footprints"
+requires-python = ">=3.12"
+dependencies = ["numpy>=2", "xarray>=2025.3", "scipy>=1.15", "netCDF4>=1.7"]
+
+[project.optional-dependencies]
+download = ["cdsapi>=0.7"]
+test = ["pytest>=8"]
+
+[tool.setuptools.packages.find]
+include = ["heatwave*"]

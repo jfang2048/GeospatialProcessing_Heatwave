@@ -1,0 +1,15 @@
+name: gprocessing-heatwave
+channels:
+  - conda-forge
+dependencies:
+  - python=3.12
+  - numpy=2.2
+  - xarray=2025.3
+  - scipy=1.15
+  - netcdf4=1.7
+  - matplotlib=3.10
+  - cdsapi=0.7
+  - jupyterlab=4
+  - nbconvert=7
+  - pytest=8
+  - pip
