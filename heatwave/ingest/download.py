@@ -55,9 +55,7 @@ def request_plan(profile, year=None):
 def cache_entry(cache_dir, label, request):
     """Locate the cache directory keyed by both the CDS dataset and request."""
     # Retain the original key for the same one-month request across schema versions.
-    month = request["month"]
-    cache_request = {**request, "month": [month]} if isinstance(month, str) else request
-    encoded = json.dumps([DATASET, cache_request], sort_keys=True).encode("utf-8")
+    encoded = json.dumps([DATASET, _cache_request(request)], sort_keys=True).encode("utf-8")
     version = hashlib.sha256(encoded).hexdigest()[:12]
     return cache_dir / f"{label}_{version}"
 
@@ -92,18 +90,16 @@ def sha256(path):
         return hashlib.file_digest(source, "sha256").hexdigest()
 
 
-def _canonical_request(partition):
-    month = partition["month"]
-    if isinstance(month, list) and len(month) == 1:
-        return {**partition, "month": month[0]}
-    return partition
+def _cache_request(request):
+    month = request["month"]
+    return {**request, "month": [month]} if isinstance(month, str) else request
 
 
 def verify_entry(entry, request):
     """Accept a cache hit only when both the request and payload match."""
     try:
         manifest = json.loads((entry / "manifest.json").read_text(encoding="utf-8"))
-        if manifest["dataset"] != DATASET or _canonical_request(manifest["request"]) != _canonical_request(request):
+        if manifest["dataset"] != DATASET or _cache_request(manifest["request"]) != _cache_request(request):
             raise ValueError("cached request differs")
         filename = manifest["payload"]
         if filename not in {"payload.zip", "payload.nc"}:
@@ -208,8 +204,10 @@ def main(argv=None):
         try:
             if args.import_pilot is not None:
                 payload = retrieve_entry(None, entry, request, pilot_file=args.import_pilot)
-            elif args.verify_only or entry.exists():
+            elif entry.exists():
                 payload = verify_entry(entry, request)
+            elif args.verify_only:
+                raise ValueError(f"no cached download at {entry}. Run without --verify-only first.")
             else:
                 if client is None:
                     import cdsapi
@@ -218,7 +216,10 @@ def main(argv=None):
                 print(f"Requesting {label} from CDS", file=sys.stderr)
                 payload = retrieve_entry(client, entry, request)
         except Exception as error:
-            print(f"{label}: {error}", file=sys.stderr)
+            message = str(error)
+            if message.startswith("Missing/incomplete configuration file:"):
+                message += ". See https://cds.climate.copernicus.eu/how-to-api for CDS credentials."
+            print(f"{label}: {message}", file=sys.stderr)
             return 1
         print(payload)
     return 0

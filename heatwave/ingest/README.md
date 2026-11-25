@@ -31,13 +31,11 @@ The CDS web form returned a 27,089-byte NetCDF for 15–21 July 2022 with SHA-25
 ## Download the full case
 
 ```bash
-python -m heatwave.ingest.download --profile target
-python -m heatwave.ingest.download --profile baseline --year 1991
-python -m heatwave.ingest.download --profile baseline
+python -m heatwave.ingest.download --profile full
 python -m heatwave.ingest.download --profile full --verify-only
 ```
 
-The full case uses 155 monthly requests for May–September. Reruns reuse verified downloads. Move a corrupt cache entry aside before rerunning its profile. For authentication or terms errors, check the token and dataset terms and compare the pilot with **Show API request code** in the CDS form.
+Set up the CDS API and download the pilot successfully before running verification. An empty cache has no manifest to verify. The full case uses 155 monthly requests for May–September. Reruns reuse verified downloads. Move a corrupt cache entry aside before rerunning its profile. For authentication or terms errors, check the token and dataset terms and compare the pilot with **Show API request code** in the CDS form.
 
 ## Normalization handoff to Events
 
@@ -54,6 +52,18 @@ For acceptance, Events receives two [v1 cubes](../../contracts/v1.md) with 4,590
 
 ## Share a snapshot
 
-1. The Ingest owner normalizes `baseline.nc` and `target.nc` and assigns a versioned snapshot ID such as `milan-jja-2022-v1`. Record the request manifests, code commit, normalization choices, hashes, sizes, period, grid and units.
-2. Store the two cubes in the team's shared folder. Run `sha256sum baseline.nc target.nc > SHA256SUMS` there. Commit a sanitized [snapshot manifest](snapshot.example.json) with attribution and expected hashes. Share restricted URLs privately and follow the [public repository checklist](../../AGENTS.md#public-repository-checklist).
-3. Download into ignored `data/snapshots/milan-jja-2022-v1/` and run `sha256sum -c SHA256SUMS` from that directory. For changed data, publish a new snapshot ID and update the manifest in the same PR. Keep earlier versions for reproducibility. [Copernicus catalogue, licence and citation](https://cds.climate.copernicus.eu/datasets/derived-era5-land-daily-statistics)
+FJ prepares one snapshot from the verified full run. The two float32 temperature arrays use about 2.56 MB before NetCDF metadata or compression. Measure the actual files before publishing.
+
+1. Assign a version such as `milan-jja-2022-v1`. Copy the two cubes to an ignored staging directory, record sizes and checksums, and populate the [snapshot manifest](snapshot.example.json) with the producing commit, source and distribution licence.
+
+   ```bash
+   snapshot=data/snapshots/milan-jja-2022-v1
+   mkdir -p "$snapshot"
+   cp runs/milan/baseline.nc runs/milan/target.nc "$snapshot/"
+   (cd "$snapshot" && sha256sum baseline.nc target.nc > SHA256SUMS)
+   du -h "$snapshot/"*.nc
+   tar -czf "$snapshot.tar.gz" -C "$snapshot" baseline.nc target.nc SHA256SUMS
+   ```
+
+2. Place the archive in the team's shared folder or attach it to a versioned GitHub Release for public distribution. Include source attribution to Copernicus Climate Change Service and ECMWF, DOI `10.24381/cds.e9c9c792`, licence and the Kelvin-to-Celsius transformation in the manifest or release notes. Commit the sanitized manifest. Keep original request downloads, credentials, and restricted links in private storage. [Copernicus dataset and licence](https://cds.climate.copernicus.eu/datasets/derived-era5-land-daily-statistics) · [GitHub Release limits](https://docs.github.com/en/repositories/releasing-projects-on-github/about-releases)
+3. Teammates extract the archive to their own ignored snapshot directory, run `sha256sum -c SHA256SUMS` there, and [start at Events](../../integration/WORKPLAN.md#integration-commands). Keep prior snapshots for reproducibility. Release a new version when the data changes.

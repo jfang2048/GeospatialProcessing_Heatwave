@@ -82,3 +82,21 @@ class DownloadTests(unittest.TestCase):
                     download.retrieve_entry(FakeCDS(b"provider error", zipped), entry, request)
                 self.assertEqual(list(root.iterdir()), [])
                 self.assertEqual(download.retrieve_entry(FakeCDS(), entry, request).name, "payload.nc")
+
+
+def test_verify_missing_cache_suggests_downloading(tmp_path, capsys):
+    assert download.main(["--cache-dir", str(tmp_path), "--verify-only"]) == 1
+    assert "Run without --verify-only" in capsys.readouterr().err
+
+
+def test_missing_credentials_points_to_local_config(tmp_path, capsys, monkeypatch):
+    import sys
+    from types import SimpleNamespace
+
+    def missing_credentials():
+        raise Exception("Missing/incomplete configuration file: ~/.cdsapirc")
+
+    monkeypatch.setitem(sys.modules, "cdsapi", SimpleNamespace(Client=missing_credentials))
+    assert download.main(["--cache-dir", str(tmp_path)]) == 1
+    assert "https://cds.climate.copernicus.eu/how-to-api" in capsys.readouterr().err
+    assert not list(tmp_path.iterdir())
