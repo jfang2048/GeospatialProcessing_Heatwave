@@ -1,5 +1,7 @@
 # Synthetic handoffs for parallel development
 
+**Historical teaching example.** Run project acceptance and generate submission figures using the [real Milan data workflow](../../README.md).
+
 The committed NetCDF files are small and contain fabricated values. Run `python integration/fixtures/build_fixtures.py` from the root to regenerate them with SciPy and NumPy.
 
 | File | Independent use |

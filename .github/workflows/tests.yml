@@ -1,0 +1,63 @@
+name: Project checks
+
+on:
+  pull_request:
+  push:
+    branches: [main]
+  workflow_dispatch:
+    inputs:
+      verify_real:
+        description: Download the full CDS case and verify the three stage outputs on main
+        type: boolean
+        default: false
+
+permissions:
+  contents: read
+
+jobs:
+  interfaces:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - run: python -m pip install .
+      - name: Check syntax and command interfaces
+        run: |
+          python -m compileall -q heatwave integration/real_tests .github/scripts
+          python -m heatwave.ingest.download --help
+          python -m heatwave.ingest.normalize --help
+          python -m heatwave.events.detect --help
+          python -m heatwave.footprints.summarize --help
+          python -m heatwave.ingest.download --profile pilot --dry-run
+
+  real-case:
+    if: github.event_name == 'workflow_dispatch' && inputs.verify_real && github.ref == 'refs/heads/main'
+    needs: interfaces
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - run: python -m pip install '.[test,download]' matplotlib 'nbconvert>=7,<8' ipykernel
+      - name: Retrieve and verify the official ERA5-Land case
+        env:
+          CDSAPI_URL: https://cds.climate.copernicus.eu/api
+          CDSAPI_KEY: ${{ secrets.CDSAPI_KEY }}
+        run: |
+          python -c 'import os, sys; sys.exit(0 if os.getenv("CDSAPI_KEY") else "Configure the CDSAPI_KEY repository secret to verify the real case.")'
+          python -m heatwave.ingest.download --profile pilot
+          python -m heatwave.ingest.download --profile pilot --verify-only
+          python -m heatwave.ingest.download --profile full
+          python -m heatwave.ingest.download --profile full --verify-only
+      - name: Produce the Milan handoffs
+        run: |
+          python -m heatwave.ingest.normalize --cache-dir data/raw/cds --baseline-out runs/milan/baseline.nc --target-out runs/milan/target.nc
+          python -m heatwave.events.detect --baseline runs/milan/baseline.nc --target runs/milan/target.nc --out runs/milan/events.nc
+          python -m heatwave.footprints.summarize --events runs/milan/events.nc --labels-out runs/milan/footprints.nc --summary-out runs/milan/footprints.csv
+      - name: Verify the real outputs and execute the case notebook
+        run: |
+          python -m pytest -q integration/real_tests
+          python -m nbconvert --to notebook --execute notebooks/01_case.ipynb --output-dir runs/milan

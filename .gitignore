@@ -2,6 +2,8 @@
 /runs/
 .venv/
 .env
+.env.*
+!.env.example
 .cdsapirc
 __pycache__/
 *.py[cod]

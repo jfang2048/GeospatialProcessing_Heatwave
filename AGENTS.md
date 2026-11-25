@@ -1,18 +1,18 @@
 # Contribution rules
 
-Each owner maintains their module's code, tests, fixtures, and documentation. Use the [v1 contract](contracts/v1.md) for file handoffs and acceptance checks.
+Each owner maintains their module's code, acceptance checks and documentation. Use the [v1 contract](contracts/v1.md) for file handoffs and acceptance checks.
 
 | Owner | Module | Branch | Starting point |
 | --- | --- | --- | --- |
 | FJ | `heatwave/ingest/` | `ingest/<task>` | [CDS pilot and snapshot guide](heatwave/ingest/README.md) |
-| YY | `heatwave/events/` | `events/<task>` | [Baseline and target fixtures](integration/fixtures/README.md) |
-| FY | `heatwave/footprints/` | `footprints/<task>` | [Events fixture](integration/fixtures/README.md) |
+| YY | `heatwave/events/` | `events/<task>` | [Verified baseline and target handoff](heatwave/ingest/README.md#share-a-snapshot) |
+| FY | `heatwave/footprints/` | `footprints/<task>` | [Events raster and daily footprint handoff](contracts/v1.md) |
 
 FJ owns shared files and dependencies on `integration/<task>` branches. Use issues or PR reviews to request shared changes. For a handoff change, include a failing example, affected inputs and outputs, and the proposed contract revision. The integration owner versions the contract after the affected owners agree.
 
 ## Public repository checklist
 
-Use team initials `FJ`, `FY` or `YY` in files, notebooks, commit messages, Git identities, and GitHub discussions. Keep member full names, personal email addresses, personal filesystem paths, credentials, private links, raw provider downloads, and run artifacts in local or approved private storage. Publish synthetic fixtures and sanitized manifests. Share private snapshot links through the team's private channel.
+Use team initials `FJ`, `FY` or `YY` in files, notebooks, commit messages, Git identities, and GitHub discussions. Keep member full names, personal email addresses, personal filesystem paths, credentials, private links, raw provider downloads, and run artifacts in local or approved private storage. Publish sanitized manifests with source attribution and checksums. The teaching sample is a seven-row derived temperature series. Its README records the data licence, source date range, coordinates, conversion and rounding. Keep private URLs and credentials out of manifests and Git history. Share private snapshot links through the team's private channel.
 
 Configure your identity once per clone. Substitute your assigned initials and the matching placeholder email. This example is for FJ.
 
@@ -28,14 +28,28 @@ Before every push, fetch and review the files and **every outgoing commit** on t
 ```bash
 git fetch origin
 git status --short
+git diff --cached --check
+python .github/scripts/check_publication.py origin/main HEAD
+git diff --check origin/main...HEAD
 git log --no-use-mailmap --format=fuller --stat -m -p origin/main..HEAD
 ```
 
-- Review each ref separately when pushing multiple branches or tags. Check author and committer names and emails in each commit. Check commit messages, filenames and diffs for private information, including lines removed in later commits. Open changed binary files and inspect their metadata. Review notebook cells, outputs and metadata.
+- Run the publication check after committing, from the repository root. It checks the author and committer pair on every outgoing commit and flags tracked paths matching the checkout's active ignore rules. Run it for each ref you intend to publish, using its base and tip. Inspect the tag message and tagger separately for an annotated tag.
+- Review commit messages (including co-author trailers), filenames and diffs for private information, including lines removed in later commits. Inspect changed binary files, NetCDF attributes, and notebook cells, outputs and metadata. A credential or private URL in an ordinary source file can pass the automated check. Store executed notebooks under `runs/`. Keep any example settings free of live values.
 - Fix the commit that contains a finding and rerun the checks before pushing. If private information has already reached GitHub, notify the team privately and rotate any exposed credentials. Coordinate history cleanup with the integration owner.
 
 ## Work and merge rules
 
-1. Start each task from current `main` and open one PR. Run your module tests and include the command and result. Use synthetic inputs in tests and CI.
+1. Each member makes their own commits and pushes their own branch to the project repository. Start each task from current `main` and open one PR. Identify the affected handoff and run the applicable real-data checks. Include the command and result. Record any input-access blocker explicitly.
 2. Treat stage outputs as immutable inputs to the next module. Pass paths explicitly and use separate run directories. Keep edits within your owned paths.
-3. Record the source version or fixture, units, CRS, date range and limitations as applicable. A teammate reviews each PR. After merging, affected owners verify the next handoff.
+3. Record the verified ERA5-Land snapshot and producing commit, units, CRS, date range and limitations as applicable. A teammate reviews each PR. After merging, affected owners verify the next handoff.
+4. In the PR description, give the verified input version, changed handoff, test command, pass/fail/skip counts and remaining checks. Set `HEATWAVE_RUN_DIR` to the completed local case directory and run `python -m pytest -ra` for the default real-data suite. CI checks without provider-backed inputs establish code readiness only. Use the [work plan](integration/WORKPLAN.md#integration-commands) for full real-case verification.
+5. Review and publish only the code, documentation and sanitized evidence needed to reproduce the run. Apply the publication checklist before the first push to a topic branch as well as later pushes. GitHub displays the accounts opening and reviewing PRs.
+
+## Code comments and docstrings
+
+The assignment asks for code comments, READMEs and a reproducible demonstration. It leaves the comment format open. The team uses English for shared code, CLI help, comments and docstrings. Document a public stage entry point where it is defined. Give its input and output files, the conditions it rejects, and a reference to the relevant contract section. Include units, coordinate order or UTC date semantics wherever a caller could otherwise interpret a value in two ways.
+
+Use comments to explain scientific choices and boundary cases, such as why an unknown day breaks a run or why cell-area arithmetic uses radians. In a numerical test, explain how to obtain any non-obvious expected value independently of the implementation. Cite the source by name or link when a formula or rule comes from a reference. Keep comments concise and update them alongside the behaviour they describe.
+
+For example, a comment next to the longitude-width term can say `# Longitude spacing is in degrees; the spherical area formula uses radians.` Notebook Markdown should identify the input layer, date, unit and meaning of each plotted result. Follow the [map specifications](contracts/geography.md) for captions and legends.
