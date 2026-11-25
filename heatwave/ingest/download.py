@@ -5,8 +5,8 @@ import calendar
 from datetime import datetime, timezone
 import hashlib
 import json
-import os
 from pathlib import Path
+import shutil
 import sys
 from tempfile import TemporaryDirectory
 import zipfile
@@ -21,11 +21,11 @@ NETCDF_SIGNATURES = (b"CDF\x01", b"CDF\x02", b"CDF\x05", b"\x89HDF\r\n\x1a\n")
 
 
 def build_request(year, month, first_day, last_day):
-    """Build one valid calendar partition and its descriptive name."""
+    """Describe an inclusive UTC date range in one month on the Milan CDS grid."""
     request = {
         "variable": ["2m_temperature"],
         "year": str(year),
-        "month": [f"{month:02d}"],
+        "month": f"{month:02d}",
         "day": [f"{day:02d}" for day in range(first_day, last_day + 1)],
         "daily_statistic": "daily_maximum",
         "time_zone": "utc+00:00",
@@ -53,12 +53,17 @@ def request_plan(profile, year=None):
 
 
 def cache_entry(cache_dir, label, request):
-    encoded = json.dumps([DATASET, request], sort_keys=True).encode("utf-8")
+    """Locate the cache directory keyed by both the CDS dataset and request."""
+    # Retain the original key for the same one-month request across schema versions.
+    month = request["month"]
+    cache_request = {**request, "month": [month]} if isinstance(month, str) else request
+    encoded = json.dumps([DATASET, cache_request], sort_keys=True).encode("utf-8")
     version = hashlib.sha256(encoded).hexdigest()[:12]
     return cache_dir / f"{label}_{version}"
 
 
 def payload_kind(path):
+    """Identify direct NetCDF or verify the NetCDF members of a CDS ZIP."""
     with path.open("rb") as payload:
         signature = payload.read(8)
     if signature.startswith(NETCDF_SIGNATURES):
@@ -82,15 +87,23 @@ def payload_kind(path):
 
 
 def sha256(path):
+    """Return the hexadecimal SHA-256 digest used in the cache manifest."""
     with path.open("rb") as source:
         return hashlib.file_digest(source, "sha256").hexdigest()
+
+
+def _canonical_request(partition):
+    month = partition["month"]
+    if isinstance(month, list) and len(month) == 1:
+        return {**partition, "month": month[0]}
+    return partition
 
 
 def verify_entry(entry, request):
     """Accept a cache hit only when both the request and payload match."""
     try:
         manifest = json.loads((entry / "manifest.json").read_text(encoding="utf-8"))
-        if manifest["dataset"] != DATASET or manifest["request"] != request:
+        if manifest["dataset"] != DATASET or _canonical_request(manifest["request"]) != _canonical_request(request):
             raise ValueError("cached request differs")
         filename = manifest["payload"]
         if filename not in {"payload.zip", "payload.nc"}:
@@ -105,22 +118,44 @@ def verify_entry(entry, request):
     return payload
 
 
-def retrieve_entry(client, entry, request):
-    """Publish a payload and its metadata together after successful retrieval."""
-    if entry.exists():
+def retrieve_entry(client, entry, request, *, pilot_file=None):
+    """Publish one fetched payload or a validated local pilot together with its provenance."""
+    if pilot_file is None and entry.exists():
         return verify_entry(entry, request)
     entry.parent.mkdir(parents=True, exist_ok=True)
     with TemporaryDirectory(prefix=".partial-", dir=entry.parent) as tempdir:
         staging = Path(tempdir) / "ready"
         staging.mkdir()
         received = staging / "response"
-        client.retrieve(DATASET, request).download(str(received))
+        if pilot_file is None:
+            client.retrieve(DATASET, request).download(str(received))
+        else:
+            if request != next(request_plan("pilot"))[1]:
+                raise ValueError("local import requires the pilot request")
+            shutil.copyfile(pilot_file, received)
         payload = received.rename(staging / f"payload.{payload_kind(received)}")
+        now = datetime.now(timezone.utc).isoformat()
+        if pilot_file is None:
+            provenance = {"acquisition_method": "cds_api", "retrieved_at_utc": now}
+        else:
+            import numpy as np
+            import xarray as xr
+            from heatwave.ingest.normalize import netcdf_path, read_month
+
+            with netcdf_path(payload) as path, xr.open_dataset(path) as raw:
+                _, _, _, temperatures = read_month(raw, request)
+                if not np.isfinite(temperatures).any():
+                    raise ValueError("pilot contains no observed temperature")
+            provenance = {
+                "acquisition_method": "user_supplied_local_pilot",
+                "source_filename": pilot_file.name,
+                "imported_at_utc": now,
+            }
         manifest = {
             "dataset": DATASET,
             "dataset_doi": DATASET_DOI,
             "request": request,
-            "retrieved_at_utc": datetime.now(timezone.utc).isoformat(),
+            **provenance,
             "payload": payload.name,
             "bytes": payload.stat().st_size,
             "sha256": sha256(payload),
@@ -134,10 +169,19 @@ def retrieve_entry(client, entry, request):
             # Another successful run may have published this same request first.
             if not (entry / "manifest.json").is_file():
                 raise
-        return verify_entry(entry, request)
+        cached = verify_entry(entry, request)
+        if pilot_file is not None and sha256(cached) != manifest["sha256"]:
+            raise ValueError("an existing pilot has different bytes; use a separate cache directory")
+        return cached
 
 
 def main(argv=None):
+    """Plan, fetch or verify UTC daily maxima for a selected CDS profile.
+
+    The cache contains one payload and request manifest per partition. A
+    verification or retrieval error returns a nonzero status. The accepted
+    bounds and date ranges are documented in contracts/geography.md.
+    """
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument(
         "--profile", choices=("pilot", "target", "baseline", "full"), default="pilot"
@@ -147,7 +191,11 @@ def main(argv=None):
     mode = parser.add_mutually_exclusive_group()
     mode.add_argument("--dry-run", action="store_true", help="print exact request JSON")
     mode.add_argument("--verify-only", action="store_true", help="verify local cache")
+    mode.add_argument("--import-pilot", type=Path, metavar="FILE",
+                      help="validate and cache a local CDS web-form pilot download")
     args = parser.parse_args(argv)
+    if args.import_pilot is not None and args.profile != "pilot":
+        parser.error("--import-pilot requires the pilot profile")
     if args.year is not None and (args.profile != "baseline" or args.year not in BASELINE):
         parser.error("--year requires the baseline profile and a year in 1991–2020")
 
@@ -158,7 +206,9 @@ def main(argv=None):
             print(json.dumps({"cache_dir": str(entry), "dataset": DATASET, "request": request}))
             continue
         try:
-            if args.verify_only or entry.exists():
+            if args.import_pilot is not None:
+                payload = retrieve_entry(None, entry, request, pilot_file=args.import_pilot)
+            elif args.verify_only or entry.exists():
                 payload = verify_entry(entry, request)
             else:
                 if client is None:

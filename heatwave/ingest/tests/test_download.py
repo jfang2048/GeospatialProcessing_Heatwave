@@ -44,6 +44,17 @@ class DownloadTests(unittest.TestCase):
         self.assertEqual(len({label for label, _ in requests}), 5)
         self.assertEqual(pilot_label, "2022-07-15_to_21")
 
+    def test_every_month_requests_the_same_geographic_and_temporal_support(self):
+        # A change to UTC, sampling frequency or bounds would change the series
+        # used to compare a target cell with its reference temperatures.
+        for label, request in download.request_plan("full"):
+            with self.subTest(partition=label):
+                self.assertEqual(request["area"], [45.9, 8.6, 45.1, 10.0])
+                self.assertEqual(request["variable"], ["2m_temperature"])
+                self.assertEqual(request["daily_statistic"], "daily_maximum")
+                self.assertEqual(request["frequency"], "1_hourly")
+                self.assertEqual(request["time_zone"], "utc+00:00")
+
     def test_direct_and_zipped_downloads_are_cached_and_verified(self):
         for zipped in (False, True):
             with self.subTest(zipped=zipped), TemporaryDirectory() as temp:
