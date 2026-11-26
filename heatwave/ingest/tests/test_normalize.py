@@ -1,14 +1,14 @@
 """Offline coverage from a provider-shaped request cache to the two v1 files."""
 
-import json
 from zipfile import ZipFile
 
 import numpy as np
 import pytest
 import xarray as xr
 
-from heatwave.ingest import download
-from heatwave.ingest.normalize import normalize, read_month
+from heatwave.ingest.normalize import normalize
+from heatwave.ingest.provider import read_month
+from heatwave.ingest.requests import build_request, request_plan
 
 
 def provider_month(request):
@@ -30,8 +30,8 @@ def provider_month(request):
 
 def test_full_cache_normalizes_both_cubes(tmp_path):
     cache = tmp_path / "cache"
-    for label, request in download.request_plan("full"):
-        entry = download.cache_entry(cache, label, request)
+    for label, request in request_plan("full"):
+        entry = cache / label
         entry.mkdir(parents=True)
         payload = entry / "payload.nc"
         provider_month(request).to_netcdf(payload, engine="scipy")
@@ -40,14 +40,6 @@ def test_full_cache_normalizes_both_cubes(tmp_path):
             with ZipFile(zipped, "w") as archive:
                 archive.write(payload, "month.nc")
             payload.unlink()
-            payload = zipped
-        (entry / "manifest.json").write_text(json.dumps({
-            "dataset": download.DATASET,
-            "request": {**request, "month": [request["month"]]},
-            "payload": payload.name,
-            "bytes": payload.stat().st_size,
-            "sha256": download.sha256(payload),
-        }))
 
     baseline = tmp_path / "baseline.nc"
     target = tmp_path / "target.nc"
@@ -62,16 +54,16 @@ def test_full_cache_normalizes_both_cubes(tmp_path):
             np.testing.assert_allclose(cube.tx_c[:, 0, 0], 26.85, atol=1e-5)
             assert np.isnan(cube.tx_c[:, -1, 0]).all()
 
-    label, request = next(download.request_plan("baseline"))
-    (download.cache_entry(cache, label, request) / "payload.nc").unlink()
-    with pytest.raises(ValueError):
+    label, _ = next(request_plan("baseline"))
+    (cache / label / "payload.nc").unlink()
+    with pytest.raises(FileNotFoundError):
         normalize(cache, tmp_path / "retry-baseline.nc", tmp_path / "retry-target.nc")
     assert not (tmp_path / "retry-baseline.nc").exists()
     assert not (tmp_path / "retry-target.nc").exists()
 
 
 def test_provider_month_rejects_wrong_dates_and_units():
-    _, request = download.build_request(2022, 7, 15, 21)
+    _, request = build_request(2022, 7, 15, 21)
     raw = provider_month(request)
     with pytest.raises(ValueError, match="requested date"):
         read_month(raw.isel(valid_time=slice(1, None)), request)

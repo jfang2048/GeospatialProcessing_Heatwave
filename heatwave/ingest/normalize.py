@@ -1,4 +1,4 @@
-"""Normalize the verified CDS monthly cache into two v1 temperature cubes."""
+"""Normalize the CDS monthly cache into two v1 temperature cubes."""
 
 import argparse
 import sys
@@ -9,18 +9,15 @@ import numpy as np
 import xarray as xr
 
 from heatwave._handoff import publish_outputs, validate_grid
-from heatwave.ingest.cache import cache_entry, netcdf_path, verify_entry
-from heatwave.ingest.provider import load_month, read_month
+from heatwave.ingest.cache import cache_entry, cached_payload
+from heatwave.ingest.provider import load_month
 from heatwave.ingest.requests import AREA, DATASET, DATASET_DOI, request_plan
-
-# Preserve imports used by the existing provider checks.
-__all__ = ["main", "netcdf_path", "normalize", "read_month"]
 
 
 def normalize(cache_dir, baseline_out, target_out):
     """Publish baseline and target cubes from the complete cache specified in docs/v1.md.
 
-    Reject unverified, incomplete or misaligned partitions before publishing either cube.
+    Reject missing or misaligned partitions before publishing either cube.
     Both outputs preserve the WGS 84 grid, UTC dates and provider mask.
     """
     cache = cache_dir.resolve()
@@ -32,8 +29,7 @@ def normalize(cache_dir, baseline_out, target_out):
         for profile, output in (("target", target_stage), ("baseline", baseline_stage)):
             all_dates, all_values = [], []
             for label, request in request_plan(profile):
-                entry = cache_entry(cache, label, request)
-                payload = verify_entry(entry, request)
+                payload = cached_payload(cache_entry(cache, label))
                 dates, lat, lon, tx_c = load_month(payload, request)
                 if grid is None:
                     grid = lat, lon

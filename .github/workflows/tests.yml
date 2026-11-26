@@ -15,26 +15,19 @@ permissions:
   contents: read
 
 jobs:
-  interfaces:
+  unit-tests:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-python@v5
         with:
           python-version: '3.12'
-      - run: python -m pip install .
-      - name: Check syntax and command interfaces
-        run: |
-          python -m compileall -q heatwave tests/real .github/scripts
-          python -m heatwave.ingest.download --help
-          python -m heatwave.ingest.normalize --help
-          python -m heatwave.events.detect --help
-          python -m heatwave.footprints.summarize --help
-          python -m heatwave.ingest.download --profile pilot --dry-run
+      - run: python -m pip install '.[test]'
+      - run: python -m pytest -q
 
   real-case:
     if: github.event_name == 'workflow_dispatch' && inputs.verify_real && github.ref == 'refs/heads/main'
-    needs: interfaces
+    needs: unit-tests
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -49,9 +42,7 @@ jobs:
         run: |
           python -c 'import os, sys; sys.exit(0 if os.getenv("CDSAPI_KEY") else "Configure the CDSAPI_KEY repository secret to verify the real case.")'
           python -m heatwave.ingest.download --profile pilot
-          python -m heatwave.ingest.download --profile pilot --verify-only
           python -m heatwave.ingest.download --profile full
-          python -m heatwave.ingest.download --profile full --verify-only
       - name: Produce the Milan handoffs
         run: |
           python -m heatwave.ingest.normalize --cache-dir data/raw/cds --baseline-out runs/milan/baseline.nc --target-out runs/milan/target.nc

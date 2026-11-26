@@ -17,4 +17,4 @@ test = ["pytest>=8"]
 include = ["heatwave*"]
 
 [tool.pytest.ini_options]
-testpaths = ["tests/real"]
+testpaths = ["heatwave/ingest/tests"]

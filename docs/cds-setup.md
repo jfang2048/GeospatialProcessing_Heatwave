@@ -12,11 +12,10 @@
    chmod 600 ~/.cdsapirc
    ```
 
-3. Activate the [project environment](../README.md#quick-start). Run the seven-day download and verify it.
+3. Activate the [project environment](../README.md#quick-start). Run the seven-day download.
 
    ```bash
    python -m heatwave.ingest.download --profile pilot
-   python -m heatwave.ingest.download --profile pilot --verify-only
    ```
 
    For a local terminal with `uv`, this is the equivalent download command.
@@ -26,4 +25,4 @@
      python -m heatwave.ingest.download --profile pilot
    ```
 
-See the [data guide](data.md) for pilot import, the full download and snapshot sharing.
+See the [data guide](data.md) for pilot import, the full download and how to share the input files.

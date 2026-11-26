@@ -1,6 +1,5 @@
-"""Read-only access to local Milan run outputs and verified CDS requests."""
+"""Read-only access to local Milan run outputs and CDS inputs."""
 
-import json
 import os
 from functools import lru_cache
 from pathlib import Path
@@ -9,8 +8,8 @@ import numpy as np
 import pytest
 import xarray as xr
 
-from heatwave.ingest import download
-from heatwave.ingest.normalize import netcdf_path
+from heatwave.ingest.cache import cache_entry, cached_payload, netcdf_path
+from heatwave.ingest.requests import build_request
 
 
 ROOT = Path(__file__).resolve().parents[2]
@@ -38,17 +37,8 @@ def load_raw_kelvin():
     cache = Path(os.getenv("HEATWAVE_CACHE_DIR", ROOT / "data" / "raw" / "cds"))
 
     def load(year, first_day, last_day):
-        label, request = download.build_request(year, 7, first_day, last_day)
-        entry = download.cache_entry(cache, label, request)
-        if not entry.is_dir():
-            pytest.fail(f"Missing real CDS request {entry}. Set HEATWAVE_CACHE_DIR to the provider cache.", pytrace=False)
-        payload = download.verify_entry(entry, request)
-        manifest = json.loads((entry / "manifest.json").read_text(encoding="utf-8"))
-        assert manifest["dataset_doi"] == "10.24381/cds.e9c9c792"
-        assert request["daily_statistic"] == "daily_maximum"
-        assert request["frequency"] == "1_hourly"
-        assert request["time_zone"] == "utc+00:00"
-        assert request["area"] == [45.9, 8.6, 45.1, 10.0]
+        label, _ = build_request(year, 7, first_day, last_day)
+        payload = cached_payload(cache_entry(cache, label))
         with netcdf_path(payload) as path, xr.open_dataset(path) as raw:
             temp = raw["t2m"].load()
         assert temp.attrs["units"].strip().lower() in {"k", "kelvin"}

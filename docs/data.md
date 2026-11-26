@@ -1,69 +1,18 @@
-# Obtain the two temperature input cubes
+# Get and share the data
 
-## Run the pilot
-
-Complete [CDS account setup](cds-setup.md) once, then run from the repository root.
+Activate the project environment and [set up CDS](cds-setup.md). Run commands from the repository root.
 
 ```bash
 python -m heatwave.ingest.download --profile pilot
-python -m heatwave.ingest.download --profile pilot --verify-only
-```
-
-For a pilot downloaded through the signed-in CDS web form, select the file using the import command. Use the actual path to the downloaded ZIP or NetCDF.
-
-```bash
-python -m heatwave.ingest.download --import-pilot /path/to/download
-python -m pytest -q tests/real/test_pilot.py
-```
-
-The pilot covers 15 to 21 July 2022. The importer decodes the file, checks the variable, Kelvin units, daily times, Milan grid and presence of finite temperatures, then stores the original bytes under `data/raw/cds/<date-range>_<request-hash>/`. Its local manifest records the original filename, import time, matching pilot request and SHA-256. The supply method identifies a user-provided file. Keep the CDS request or download receipt with the private run records to document provider provenance. An API retrieval records its retrieval time separately. The cache accepts equivalent one-month manifests written before the CDS month field was changed to a string.
-
-## Verified pilot
-
-The CDS web form returned a 27,089-byte NetCDF for 15–21 July 2022 with SHA-256 `1d2b8e5840bfd92250978453194679ef19494dbcfd5681d9c8c34a9f32fa323c`. The observed field was float32 `t2m(valid_time, latitude, longitude)` in K, containing seven dates, nine latitudes and fifteen longitudes. All 945 values were finite. The lowest and highest daily maxima over these grid cells and dates were 22.972 °C and 37.525 °C. This digest identifies the specific download used for the [published cell extract](../notebooks/data/pilot_milan_cell.csv). Equivalent re-exports may have different file bytes.
-
-## Download the full case
-
-```bash
 python -m heatwave.ingest.download --profile full
-python -m heatwave.ingest.download --profile full --verify-only
 ```
 
-Set up the CDS API and download the pilot successfully before running verification. An empty cache has no manifest to verify. The full case uses 155 monthly requests for May–September. Reruns reuse verified downloads. Move a corrupt cache entry aside before rerunning its profile. For authentication or terms errors, check the token and dataset terms and compare the pilot with **Show API request code** in the CDS form.
+The pilot is 15–21 July 2022. It provides the grid used by [the pilot notebook](../notebooks/00_pilot.ipynb). The [seven-row CSV](../notebooks/data/pilot_milan_cell.csv) contains UTC daily maximum 2 m air temperatures at 45.5°N, 9.2°E, converted to Celsius and rounded to 0.001 °C. [Copernicus C3S / ECMWF dataset, DOI and licence](https://doi.org/10.24381/cds.e9c9c792)
 
-### When CDS queues are full
+For a pilot file already downloaded through the CDS website, run `python -m heatwave.ingest.download --import-pilot /path/to/file.nc`.
 
-`accepted` means CDS has received the request. Check its ID in [Your Requests](https://cds.climate.copernicus.eu/requests). Keep one downloader active for the shared cache. It waits for and verifies each monthly result before submitting the next request. If a run stops, check the last request in CDS before restarting. A restart reuses verified local entries. [CDS request states](https://confluence.ecmwf.int/pages/viewpage.action?pageId=601307425) · [ECMWF service guidance](https://forum.ecmwf.int/t/data-stores-service-protection-measures-affecting-data-downloads-and-account-access-cds-ads-ewds-ecds/15481)
+The full download covers May–September in 1991–2020 and 2022. Files land in `data/raw/cds/`. The script downloads one month at a time and reuses existing files. With `accepted` on the terminal, follow the request ID on [CDS Your Requests](https://cds.climate.copernicus.eu/requests).
 
-The reference period is already 30 years (1991–2020). A 20-year reference would reduce the full plan from 155 to 105 monthly requests and change the percentile reference population. While CDS processes the full case, use the verified pilot for ingest checks and the [synthetic handoffs](workflow.md#synthetic-fixtures) for downstream development. Reuse a verified team snapshot for the same reference period if one is available.
+## Share the two input files
 
-## Normalization handoff to Events
-
-The normalizer reads the verified monthly entries of the full request plan. It checks each entry's manifest, request, byte count and SHA-256 before using its NetCDF payload. A direct NetCDF or a ZIP containing one NetCDF member is accepted. The separate seven-day pilot may coexist with the monthly entries. Missing entries stop the run.
-
-```bash
-mkdir -p runs/milan
-python -m heatwave.ingest.normalize --cache-dir data/raw/cds --baseline-out runs/milan/baseline.nc --target-out runs/milan/target.nc
-```
-
-The reader expects Kelvin `t2m` on `latitude`, `longitude` and `time` or `valid_time`. It checks the decoded dates and requested grid, unpacks CF temperature values, preserves masks, and sorts both axes into increasing order. Additional dimensions require a documented mapping from the actual provider pilot.
-
-For acceptance, Events receives two [v1 cubes](v1.md) with 4,590 baseline dates and 153 target dates. Once the full provider cache and normalized outputs are in place, run `python -m pytest -q tests/real/test_raw_handoff.py`. This check compares original July temperatures and masks against the normalized values and coordinates in both cubes. The separate [pilot check](../tests/real/test_pilot.py) can be run as soon as the seven-day request is cached.
-
-## Share a snapshot
-
-FJ prepares one snapshot from the verified full run. The two float32 temperature arrays use about 2.56 MB before NetCDF metadata or compression. Measure the actual files before publishing.
-
-1. Assign a version such as `milan-jja-2022-v1`. Copy the two cubes to an ignored staging directory, record sizes and checksums, and populate the [snapshot manifest](../heatwave/ingest/snapshot.example.json) with the producing commit, source and distribution licence.
-
-   ```bash
-   snapshot=data/snapshots/milan-jja-2022-v1
-   mkdir -p "$snapshot"
-   cp runs/milan/baseline.nc runs/milan/target.nc "$snapshot/"
-   (cd "$snapshot" && sha256sum baseline.nc target.nc > SHA256SUMS)
-   du -h "$snapshot/"*.nc
-   tar -czf "$snapshot.tar.gz" -C "$snapshot" baseline.nc target.nc SHA256SUMS
-   ```
-
-2. Place the archive in the team's shared folder or attach it to a versioned GitHub Release for public distribution. Include source attribution to Copernicus Climate Change Service and ECMWF, DOI `10.24381/cds.e9c9c792`, licence and the Kelvin-to-Celsius transformation in the manifest or release notes. Commit the sanitized manifest. Keep original request downloads, credentials, and restricted links in private storage. [Copernicus dataset and licence](https://cds.climate.copernicus.eu/datasets/derived-era5-land-daily-statistics) · [GitHub Release limits](https://docs.github.com/en/repositories/releasing-projects-on-github/about-releases)
-3. Teammates extract the archive to their own ignored snapshot directory, run `sha256sum -c SHA256SUMS` there, and [start at Events](workflow.md#integration-commands). Keep prior snapshots for reproducibility. Release a new version when the data changes.
+After [normalization](workflow.md), give the team `baseline.nc` and `target.nc` through the shared folder. Teammates place both files in `runs/milan/` and start at Events. The original CDS downloads stay with FJ.

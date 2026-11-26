@@ -4,11 +4,11 @@ Each owner maintains their module's code, acceptance checks and documentation. U
 
 | Owner | Module | Branch | Starting point |
 | --- | --- | --- | --- |
-| FJ | `heatwave/ingest/` | `ingest/<task>` | [CDS pilot and snapshot guide](docs/data.md) |
-| YY | `heatwave/events/` | `events/<task>` | [Verified baseline and target handoff](docs/data.md#share-a-snapshot) |
+| FJ | `heatwave/ingest/` | `ingest/<task>` | [CDS data guide](docs/data.md) |
+| YY | `heatwave/events/` | `events/<task>` | [Baseline and target files](docs/data.md#share-the-two-input-files) |
 | FY | `heatwave/footprints/` | `footprints/<task>` | [Events raster and daily footprint handoff](docs/v1.md) |
 
-FJ owns shared files and dependencies on `integration/<task>` branches. Use issues or PR reviews to request shared changes. For a handoff change, include a failing example, affected inputs and outputs, and the proposed contract revision. The integration owner versions the contract after the affected owners agree.
+FJ maintains shared files and dependencies. Use issues or PR reviews to request shared changes. For a handoff change, include a failing example, affected inputs and outputs, and the proposed contract revision. The integration owner versions the contract after the affected owners agree.
 
 ## Local releases
 
@@ -16,7 +16,7 @@ For FJ's local checkout, make and test changes on `dev`. Commit each related bat
 
 ## Public repository checklist
 
-Use team initials `FJ`, `FY` or `YY` in files, notebooks, commit messages, Git identities, and GitHub discussions. Keep member full names, personal email addresses, personal filesystem paths, credentials, private links, raw provider downloads, and run artifacts in local or approved private storage. Publish sanitized manifests with source attribution and checksums. The teaching sample is a seven-row derived temperature series. Its README records the data licence, source date range, coordinates, conversion and rounding. Keep private URLs and credentials out of manifests and Git history. Share private snapshot links through the team's private channel.
+Use team initials `FJ`, `FY` or `YY` in files, notebooks, commit messages, Git identities, and GitHub discussions. Keep member full names, personal email addresses, personal filesystem paths, credentials, private links, raw provider downloads, and run artifacts in local or approved private storage. Cite the data source in public examples. The teaching sample is a seven-row derived temperature series. Its README records the data licence, source date range, coordinates, conversion and rounding. Share the two NetCDF inputs through the team folder.
 
 Configure your identity once per clone. Substitute your assigned initials and the matching placeholder email. This example is for FJ.
 
@@ -46,8 +46,8 @@ git log --no-use-mailmap --format=fuller --stat -m -p origin/main..HEAD
 
 1. Each member makes their own commits and pushes their own branch to the project repository. Start each task from current `main` and open one PR. Identify the affected handoff and run the applicable real-data checks. Include the command and result. Record any input-access blocker explicitly.
 2. Treat stage outputs as immutable inputs to the next module. Pass paths explicitly and use separate run directories. Keep edits within your owned paths.
-3. Record the verified ERA5-Land snapshot and producing commit, units, CRS, date range and limitations as applicable. A teammate reviews each PR. After merging, affected owners verify the next handoff.
-4. In the PR description, give the verified input version, changed handoff, test command, pass/fail/skip counts and remaining checks. Set `HEATWAVE_RUN_DIR` to the completed local case directory and run `python -m pytest -ra` for the default real-data suite. CI checks without provider-backed inputs establish code readiness only. Use the [work plan](docs/workflow.md#integration-commands) for full real-case verification.
+3. Record the input source, output units and date range. A teammate reviews each PR. After merging, affected owners verify the next handoff.
+4. In the PR description, give the input files, changed handoff, test command and result. Set `HEATWAVE_RUN_DIR` to the completed local case directory and run `python -m pytest -ra` for the default real-data suite. CI checks without provider-backed inputs establish code readiness only. Use the [work plan](docs/workflow.md#tests) for full real-case verification.
 5. Review and publish only the code, documentation and sanitized evidence needed to reproduce the run. Apply the publication checklist before the first push to a topic branch as well as later pushes. GitHub displays the accounts opening and reviewing PRs.
 
 ## Code comments and docstrings
