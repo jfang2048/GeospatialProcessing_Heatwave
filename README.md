@@ -27,7 +27,11 @@ docs/
   v1.md                         File formats and validation at each handoff
   geography.md                  Study area, method references and map specifications
 heatwave/
-  ingest/                       Download, cache and normalize data (FJ)
+  ingest/                       Prepare the two NetCDF inputs (FJ)
+    download.py                 Fetch, import and verify provider data
+    normalize.py                Write baseline.nc and target.nc
+    requests.py / cache.py      Request plan and on-disk cache
+    provider.py                 Decode provider dates, coordinates and values
   events/detect.py              Calculate percentiles and detect heatwave days (YY)
   footprints/summarize.py       Label daily footprints and write the CSV (FY)
   _handoff.py                   Shared grid and output file conventions

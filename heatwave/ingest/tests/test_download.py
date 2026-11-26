@@ -1,13 +1,15 @@
 """Download tests exercise caching without provider access."""
 
 import json
+import unittest
 from pathlib import Path
 from tempfile import TemporaryDirectory
-import unittest
 from zipfile import ZipFile
 
-from heatwave.ingest import download
+import pytest
 
+from heatwave.ingest import download
+from heatwave.ingest.cache import payload_kind
 
 # A signature with dummy content exercises transport detection only.
 NETCDF_STUB = b"CDF\x02transport fixture"
@@ -94,9 +96,18 @@ def test_missing_credentials_points_to_local_config(tmp_path, capsys, monkeypatc
     from types import SimpleNamespace
 
     def missing_credentials():
-        raise Exception("Missing/incomplete configuration file: ~/.cdsapirc")
+        raise RuntimeError("Missing/incomplete configuration file: ~/.cdsapirc")
 
     monkeypatch.setitem(sys.modules, "cdsapi", SimpleNamespace(Client=missing_credentials))
     assert download.main(["--cache-dir", str(tmp_path)]) == 1
     assert "https://cds.climate.copernicus.eu/how-to-api" in capsys.readouterr().err
     assert not list(tmp_path.iterdir())
+
+
+def test_archive_with_multiple_netcdfs_is_rejected(tmp_path):
+    path = tmp_path / "response.zip"
+    with ZipFile(path, "w") as archive:
+        archive.writestr("first.nc", NETCDF_STUB)
+        archive.writestr("second.nc", NETCDF_STUB)
+    with pytest.raises(ValueError, match="expected one NetCDF member"):
+        payload_kind(path)
