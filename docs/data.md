@@ -17,6 +17,8 @@ The command reads hourly ERA5-Land temperatures for the 9 × 15 Milan grid and t
 | `baseline.nc` | May–September, 1991–2020 | The local temperature threshold |
 | `target.nc` | May–September, 2022 | The summer being studied |
 
+ARCO opens the written files before publishing them and compares every saved temperature with a separate calculation from the original hourly values. Before sharing, you can rerun the file checks with `python -m heatwave.ingest.check`. Add `--pilot path/to/payload.nc` to compare the seven July days against a separately downloaded CDS daily file. The comparison checks dates, coordinates, missing cells and temperatures to 0.001 °C.
+
 If you use `uv`, the equivalent command installs the library and its ARCO dependencies in an isolated environment.
 
 ```bash

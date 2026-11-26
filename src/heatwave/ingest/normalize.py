@@ -9,6 +9,7 @@ import numpy as np
 
 from heatwave._handoff import publish_outputs
 from heatwave.ingest.cache import cache_entry, cached_payload
+from heatwave.ingest.check import check_pair
 from heatwave.ingest.provider import load_month, temperature_cube
 from heatwave.ingest.requests import DATASET, DATASET_DOI, request_plan
 
@@ -40,6 +41,7 @@ def normalize(cache_dir, baseline_out, target_out):
                 np.concatenate(all_dates), *grid, np.concatenate(all_values),
                 source=DATASET, doi=DATASET_DOI,
             ).to_netcdf(output)
+        check_pair(baseline_stage, target_stage)
 
 
 def main(argv=None):

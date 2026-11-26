@@ -8,6 +8,7 @@ import numpy as np
 import xarray as xr
 
 from heatwave._handoff import publish_outputs
+from heatwave.ingest.check import check_pair
 from heatwave.ingest.provider import temperature_cube
 from heatwave.ingest.requests import AREA, BASELINE, TARGET
 
@@ -85,6 +86,15 @@ def run(run_dir, token):
                 (daily.values.astype("float64") - 273.15).astype("float32"),
                 source=ARCO_SOURCE, doi=ARCO_DOI,
             ).to_netcdf(output)
+
+        baseline, target = check_pair(*outputs)
+        # Independently reduce the original 24-hour blocks and compare every saved cell.
+        values = hourly.values.reshape(-1, 24, *hourly.shape[1:])
+        daily = (np.fmax.reduce(values, axis=1).astype("float64") - 273.15).astype("float32")
+        boundary = baseline.sizes["time"]
+        for cube, expected in ((baseline, daily[:boundary]), (target, daily[boundary:])):
+            if not np.array_equal(cube.tx_c.values, expected, equal_nan=True):
+                raise ValueError("Saved Celsius temperatures differ from the hourly daily maxima")
     print(run_dir / "baseline.nc")
     print(run_dir / "target.nc")
 
