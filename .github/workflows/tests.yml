@@ -25,7 +25,7 @@ jobs:
       - run: python -m pip install .
       - name: Check syntax and command interfaces
         run: |
-          python -m compileall -q heatwave integration/real_tests .github/scripts
+          python -m compileall -q heatwave tests/real .github/scripts
           python -m heatwave.ingest.download --help
           python -m heatwave.ingest.normalize --help
           python -m heatwave.events.detect --help
@@ -59,5 +59,5 @@ jobs:
           python -m heatwave.footprints.summarize --events runs/milan/events.nc --labels-out runs/milan/footprints.nc --summary-out runs/milan/footprints.csv
       - name: Verify the real outputs and execute the case notebook
         run: |
-          python -m pytest -q integration/real_tests
+          python -m pytest -q tests/real
           python -m nbconvert --to notebook --execute notebooks/01_case.ipynb --output-dir runs/milan

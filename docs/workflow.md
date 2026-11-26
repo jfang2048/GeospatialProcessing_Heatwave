@@ -37,9 +37,9 @@ python -m heatwave.footprints.summarize --events runs/milan/events.nc --labels-o
 
 Full raw-cache verification covers **155 monthly requests**. Preserve each original request manifest, request parameters, byte count and SHA-256 alongside its matching payload. Normalization reads the verified payloads and writes separate Celsius cubes with 4,590 May-September reference dates and 153 May-September target dates on the same 9 by 15 grid.
 
-For a shared snapshot, [verify both cubes](data.md#share-a-snapshot), place them in the run directory, and start at Events. Run `python -m pytest -q integration/real_tests/test_case.py` to check the downstream stages. Full raw-to-output verification also needs the provider cache.
+For a shared snapshot, [verify both cubes](data.md#share-a-snapshot), place them in the run directory, and start at Events. Run `python -m pytest -q tests/real/test_case.py` to check the downstream stages. Full raw-to-output verification also needs the provider cache.
 
-The default pytest collection is the real-data suite under `integration/real_tests/`. It also uses the separate July 2022 pilot and the original July 1991 and July 2022 monthly payloads to check provider data against the normalized cubes. Keep the verified cache in `data/raw/cds` or point `HEATWAVE_CACHE_DIR` to its location for pytest. With only the pilot available, run `python -m pytest -q integration/real_tests/test_pilot.py` and record this as pilot verification. Point `HEATWAVE_RUN_DIR` to the directory containing the two verified input cubes and all three generated outputs before running the tests and notebook. For the path above use `export HEATWAVE_RUN_DIR=runs/milan` in Bash or `$env:HEATWAVE_RUN_DIR = 'runs/milan'` in PowerShell.
+The default pytest collection is the real-data suite under `tests/real/`. It also uses the separate July 2022 pilot and the original July 1991 and July 2022 monthly payloads to check provider data against the normalized cubes. Keep the verified cache in `data/raw/cds` or point `HEATWAVE_CACHE_DIR` to its location for pytest. With only the pilot available, run `python -m pytest -q tests/real/test_pilot.py` and record this as pilot verification. Point `HEATWAVE_RUN_DIR` to the directory containing the two verified input cubes and all three generated outputs before running the tests and notebook. For the path above use `export HEATWAVE_RUN_DIR=runs/milan` in Bash or `$env:HEATWAVE_RUN_DIR = 'runs/milan'` in PowerShell.
 
 ```bash
 python -m pytest -ra
@@ -61,7 +61,7 @@ Enter the team details, tentative title and repository URL in the course spreads
 
 **Historical teaching example.** Run project acceptance and generate submission figures using the [real Milan data workflow](../README.md).
 
-The committed NetCDF files are small and contain fabricated values. Run `python integration/fixtures/build_fixtures.py` from the root to regenerate them with SciPy and NumPy.
+The committed NetCDF files are small and contain fabricated values. Run `python notebooks/data/fixtures/build_fixtures.py` from the root to regenerate them with SciPy and NumPy.
 
 | File | Independent use |
 | --- | --- |

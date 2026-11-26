@@ -35,11 +35,9 @@ heatwave/
   events/detect.py              Calculate percentiles and detect heatwave days (YY)
   footprints/summarize.py       Label daily footprints and write the CSV (FY)
   _handoff.py                   Shared grid and output file conventions
-integration/
-  fixtures/                     Synthetic NetCDF inputs and hand-worked examples
-  real_tests/                   Checks against actual CDS data and pipeline outputs
-  pilot_milan_cell.csv          Seven real temperatures from one pilot grid cell
+tests/real/                     Tests that use CDS inputs and case outputs
 notebooks/                      Worked example, real pilot and full case
+  data/                         Synthetic examples and the seven-day cell CSV
 .github/                        CI, PR template and public-release check
 data/ and runs/                 Local cache, snapshots and results, ignored by Git
 ```
