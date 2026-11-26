@@ -12,7 +12,7 @@ The downloader, three processing commands and [case notebook](../notebooks/01_ca
 | 10 Dec | All | Reproduce the real case in a fresh directory, run the real-data tests and execute the notebook. Compare the figures and CSV with the source rasters. |
 | 14 Dec project session | All | Rehearse individual explanations and review each member's contributions and the submission materials. |
 
-The assignment leaves the topic, data and methods to the team. The proposed case covers one Milan-domain summer and three figures. See the [grid and visual specifications](../contracts/geography.md), [file interfaces](../contracts/v1.md) and [handoff change procedure](../AGENTS.md).
+The assignment leaves the topic, data and methods to the team. The proposed case covers one Milan-domain summer and three figures. See the [grid and visual specifications](geography.md), [file interfaces](v1.md) and [handoff change procedure](../AGENTS.md).
 
 ## Course deliverables
 
@@ -26,7 +26,7 @@ The assignment leaves the topic, data and methods to the team. The proposed case
 
 ## Integration commands
 
-From the repository root, activate the project environment and obtain the provider-backed data as described in the [ingest guide](../heatwave/ingest/README.md). The commands below use a fresh `runs/milan` directory. For a rerun, choose a new run directory and substitute it in every path.
+From the repository root, activate the project environment and obtain the provider-backed data as described in the [ingest guide](data.md). The commands below use a fresh `runs/milan` directory. Start at Events if you already have the verified snapshot. For a rerun, choose a new run directory and substitute it in every path.
 
 ```bash
 python -m heatwave.ingest.download --profile full --verify-only
@@ -37,7 +37,7 @@ python -m heatwave.footprints.summarize --events runs/milan/events.nc --labels-o
 
 Full raw-cache verification covers **155 monthly requests**. Preserve each original request manifest, request parameters, byte count and SHA-256 alongside its matching payload. Normalization reads the verified payloads and writes separate Celsius cubes with 4,590 May-September reference dates and 153 May-September target dates on the same 9 by 15 grid.
 
-A teammate starting from an existing normalized snapshot can place its verified `baseline.nc` and `target.nc` in a fresh run directory and start with Events. First match their sizes and SHA-256 values to the populated snapshot manifest. Record the snapshot ID, CDS dataset and DOI, source requests, bounds, reference and target periods, units and producing commit. The [manifest template](../heatwave/ingest/snapshot.example.json) shows the fields. The normalized snapshot supports downstream checks; full raw-to-output verification also requires the provider cache.
+For a shared snapshot, [verify both cubes](data.md#share-a-snapshot), place them in the run directory, and start at Events. Run `python -m pytest -q integration/real_tests/test_case.py` to check the downstream stages. Full raw-to-output verification also needs the provider cache.
 
 The default pytest collection is the real-data suite under `integration/real_tests/`. It also uses the separate July 2022 pilot and the original July 1991 and July 2022 monthly payloads to check provider data against the normalized cubes. Keep the verified cache in `data/raw/cds` or point `HEATWAVE_CACHE_DIR` to its location for pytest. With only the pilot available, run `python -m pytest -q integration/real_tests/test_pilot.py` and record this as pilot verification. Point `HEATWAVE_RUN_DIR` to the directory containing the two verified input cubes and all three generated outputs before running the tests and notebook. For the path above use `export HEATWAVE_RUN_DIR=runs/milan` in Bash or `$env:HEATWAVE_RUN_DIR = 'runs/milan'` in PowerShell.
 
@@ -51,8 +51,22 @@ python -m nbconvert --to notebook --execute notebooks/01_case.ipynb --output-dir
 | FJ | Confirm full request coverage, input checksums, temperature conversion and decoded UTC dates. Keep the original and normalized grid coordinates available for comparison. |
 | YY | Select a real cell and date. Check the finite sample count and linear P90 in its 15-day windows across 30 years. Inspect neighbouring target dates to confirm the strict exceedance and three-day run decision. |
 | FY | For one positive daily ID, recount its cells and compare their directly summed nominal areas and peak exceedance with the CSV. Across the summer, compare the raster and CSV totals and check how unknown cells affect coverage. If no cells qualify, verify that the summary has only its header. |
-| All | Check the three figures against the [map guide](../contracts/geography.md#three-submission-figures). The peak-day map, if applicable, must agree with the earliest maximum positive area in the daily series. |
+| All | Check the three figures against the [map guide](geography.md#three-submission-figures). The peak-day map, if applicable, must agree with the earliest maximum positive area in the daily series. |
 
-Record the source snapshot, code revision, commands, test counts and any missing data or skipped check. A run blocked on access to provider inputs remains pending. Earlier fabricated examples in the repository are archived design material. The submission, tests and figures use the verified ERA5-Land case.
+Record the source snapshot, code revision, commands, test counts and any missing data or skipped check. A run blocked on access to provider inputs remains pending. Use the verified ERA5-Land case for submission tests and figures.
 
 Enter the team details, tentative title and repository URL in the course spreadsheet. Confirm the exam call in WeBeep and count back nine calendar days to the last eligible repository change.
+
+## Synthetic fixtures
+
+**Historical teaching example.** Run project acceptance and generate submission figures using the [real Milan data workflow](../README.md).
+
+The committed NetCDF files are small and contain fabricated values. Run `python integration/fixtures/build_fixtures.py` from the root to regenerate them with SciPy and NumPy.
+
+| File | Independent use |
+| --- | --- |
+| `baseline_fixture.nc` and `target_fixture.nc` | Events can test two reference years (2003 and leap year 2004) with P90 exactly 30 °C, plus a full synthetic target season. |
+| `events_fixture.nc` | Footprints can start from a hand labelled 92 day mask with only three affected days, covering edge adjacency, diagonal contact and an unknown cell. |
+| `worked_example.csv` | Five days from the same fixture, recorded with expected flags and component identifiers for hand checking. |
+
+The first three days have two components. The first contains the two adjacent cells in the 45.4°N row, and the second contains the eastern cell in the 45.5°N row. Diagonal contact keeps the components separate. Equality or a missing value breaks each shorter run. Days four and five have zero components.

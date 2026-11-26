@@ -1,14 +1,18 @@
 # Contribution rules
 
-Each owner maintains their module's code, acceptance checks and documentation. Use the [v1 contract](contracts/v1.md) for file handoffs and acceptance checks.
+Each owner maintains their module's code, acceptance checks and documentation. Use the [v1 contract](docs/v1.md) for file handoffs and acceptance checks.
 
 | Owner | Module | Branch | Starting point |
 | --- | --- | --- | --- |
-| FJ | `heatwave/ingest/` | `ingest/<task>` | [CDS pilot and snapshot guide](heatwave/ingest/README.md) |
-| YY | `heatwave/events/` | `events/<task>` | [Verified baseline and target handoff](heatwave/ingest/README.md#share-a-snapshot) |
-| FY | `heatwave/footprints/` | `footprints/<task>` | [Events raster and daily footprint handoff](contracts/v1.md) |
+| FJ | `heatwave/ingest/` | `ingest/<task>` | [CDS pilot and snapshot guide](docs/data.md) |
+| YY | `heatwave/events/` | `events/<task>` | [Verified baseline and target handoff](docs/data.md#share-a-snapshot) |
+| FY | `heatwave/footprints/` | `footprints/<task>` | [Events raster and daily footprint handoff](docs/v1.md) |
 
 FJ owns shared files and dependencies on `integration/<task>` branches. Use issues or PR reviews to request shared changes. For a handoff change, include a failing example, affected inputs and outputs, and the proposed contract revision. The integration owner versions the contract after the affected owners agree.
+
+## Local releases
+
+For FJ's local checkout, make and test changes on `dev`. Commit each related batch, run the publication checks, merge it into local `main`, and push `origin main`. Verify the remote commit before returning to `dev`. Keep the local `dev` branch available for the next batch.
 
 ## Public repository checklist
 
@@ -43,7 +47,7 @@ git log --no-use-mailmap --format=fuller --stat -m -p origin/main..HEAD
 1. Each member makes their own commits and pushes their own branch to the project repository. Start each task from current `main` and open one PR. Identify the affected handoff and run the applicable real-data checks. Include the command and result. Record any input-access blocker explicitly.
 2. Treat stage outputs as immutable inputs to the next module. Pass paths explicitly and use separate run directories. Keep edits within your owned paths.
 3. Record the verified ERA5-Land snapshot and producing commit, units, CRS, date range and limitations as applicable. A teammate reviews each PR. After merging, affected owners verify the next handoff.
-4. In the PR description, give the verified input version, changed handoff, test command, pass/fail/skip counts and remaining checks. Set `HEATWAVE_RUN_DIR` to the completed local case directory and run `python -m pytest -ra` for the default real-data suite. CI checks without provider-backed inputs establish code readiness only. Use the [work plan](integration/WORKPLAN.md#integration-commands) for full real-case verification.
+4. In the PR description, give the verified input version, changed handoff, test command, pass/fail/skip counts and remaining checks. Set `HEATWAVE_RUN_DIR` to the completed local case directory and run `python -m pytest -ra` for the default real-data suite. CI checks without provider-backed inputs establish code readiness only. Use the [work plan](docs/workflow.md#integration-commands) for full real-case verification.
 5. Review and publish only the code, documentation and sanitized evidence needed to reproduce the run. Apply the publication checklist before the first push to a topic branch as well as later pushes. GitHub displays the accounts opening and reviewing PRs.
 
 ## Code comments and docstrings
@@ -52,4 +56,4 @@ The assignment asks for code comments, READMEs and a reproducible demonstration.
 
 Use comments to explain scientific choices and boundary cases, such as why an unknown day breaks a run or why cell-area arithmetic uses radians. In a numerical test, explain how to obtain any non-obvious expected value independently of the implementation. Cite the source by name or link when a formula or rule comes from a reference. Keep comments concise and update them alongside the behaviour they describe.
 
-For example, a comment next to the longitude-width term can say `# Longitude spacing is in degrees; the spherical area formula uses radians.` Notebook Markdown should identify the input layer, date, unit and meaning of each plotted result. Follow the [map specifications](contracts/geography.md) for captions and legends.
+For example, a comment next to the longitude-width term can say `# Longitude spacing is in degrees; the spherical area formula uses radians.` Notebook Markdown should identify the input layer, date, unit and meaning of each plotted result. Follow the [map specifications](docs/geography.md) for captions and legends.

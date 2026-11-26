@@ -79,7 +79,7 @@ def read_month(raw, request):
 
 
 def normalize(cache_dir, baseline_out, target_out):
-    """Publish baseline and target cubes from the complete cache specified in contracts/v1.md.
+    """Publish baseline and target cubes from the complete cache specified in docs/v1.md.
 
     Reject unverified, incomplete or misaligned partitions before publishing either cube.
     Both outputs preserve the WGS 84 grid, UTC dates and provider mask.

@@ -101,7 +101,7 @@ def detect_events(baseline, target):
 
 
 def run(baseline_path, target_path, output_path):
-    """Write events.nc from two v1 input cubes as specified in contracts/v1.md, B.
+    """Write events.nc from two v1 input cubes as specified in docs/v1.md, B.
 
     Reject malformed inputs, different spatial grids and multiple target years.
     Keep the target grid and report one slice per UTC day of the target summer.

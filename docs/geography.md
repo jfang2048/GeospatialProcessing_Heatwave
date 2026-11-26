@@ -10,7 +10,7 @@
 | Raster footprint | Expected outer edges are **8.55–10.05°E, 45.05–45.95°N**. Footprint areas include full qualifying cells inside these edges. | Derive edges from the actual coordinates. With the project's spherical approximation, a cell at 45.5°N covers about 86.66 km². Latitude changes cell area. |
 | Measurement and time | Reanalysis of air temperature 2 m above ground. Each input value is the maximum of hourly samples on one UTC date. Reference input covers May–September of 1991–2020. Target input covers May–September 2022. | Expect 4,590 and 153 daily slices respectively. The reported interval is 1 June–31 August 2022 inclusive (92 dates). May and September supply reference-window context. |
 
-These dimensions describe the requested real case. The [committed example](../integration/fixtures/README.md) uses a 2 × 3 grid. Its smaller extent lets a reviewer check every cell. The CDS catalogue distinguishes the delivered grid spacing from the model resolution. [Product documentation](https://cds.climate.copernicus.eu/datasets/derived-era5-land-daily-statistics?tab=overview)
+These dimensions describe the requested real case. The [committed example](workflow.md#synthetic-fixtures) uses a 2 × 3 grid. Its smaller extent lets a reviewer check every cell. The CDS catalogue distinguishes the delivered grid spacing from the model resolution. [Product documentation](https://cds.climate.copernicus.eu/datasets/derived-era5-land-daily-statistics?tab=overview)
 
 ## Raster layers
 
@@ -31,3 +31,10 @@ All layers share the input grid. Each value refers to one cell and one UTC date.
 3. **Peak-day footprint map.** Select the earliest date tied for the greatest positive observed area, comparing unrounded daily totals. Give the UTC date, observed area, coverage and data source. Show component boundaries or colours, background and unknown cells. Use the full cell-edge extent, label axes in degrees, show north upwards and preserve the approximate local aspect at the domain's mid-latitude. Render categorical cells without smoothing. With no positive area, report whether observations were available and omit the peak-day map.
 
 A component touching the edge may continue outside the study domain. The area represents qualifying grid cells inside the rectangle. Municipal land area, neighbourhood-scale temperature, population exposure and heatwave motion would each require additional data or analysis. The [file contract](v1.md) gives the cell-area formula, connectivity and missing-value rules.
+
+## Method references
+
+- Perkins and Alexander define the calendar-day P90 and three-day run used in this study. [Journal of Climate](https://doi.org/10.1175/JCLI-D-12-00383.1) · [ClimPACT2 guide](https://gerinberg.com/climpact/user_guide/html/appendixD.htm)
+- Falasca et al. motivate the Milan 2022 case. Puche et al. distinguish air and surface temperature in the same area. [Urban Climate](https://doi.org/10.1016/j.uclim.2023.101728) · [Remote Sensing](https://doi.org/10.3390/rs15030733)
+- The ERA5‑Land paper and CDS documentation describe the grid and daily statistics. [ERA5‑Land paper](https://doi.org/10.5194/essd-13-4349-2021) · [Dataset](https://doi.org/10.24381/cds.e9c9c792) · [Daily statistics methods](https://confluence.ecmwf.int/pages/viewpage.action?pageId=505382218)
+- Mandonnet et al. describe grouping persistent hot cells. This project applies spatial grouping separately for each day. [Climatic Change](https://doi.org/10.1007/s10584-026-04234-0)

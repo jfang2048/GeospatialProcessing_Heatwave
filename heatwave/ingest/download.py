@@ -176,7 +176,7 @@ def main(argv=None):
 
     The cache contains one payload and request manifest per partition. A
     verification or retrieval error returns a nonzero status. The accepted
-    bounds and date ranges are documented in contracts/geography.md.
+    bounds and date ranges are documented in docs/geography.md.
     """
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument(
