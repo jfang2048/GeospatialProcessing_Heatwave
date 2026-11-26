@@ -1,36 +1,20 @@
-# Study grid and map interpretation
+# The Milan grid and figures
 
-## Spatial and temporal support
+## Study area
 
-| Property | Milan case | How to verify |
-| --- | --- | --- |
-| Geographic extent | Centre coordinates from 8.6 to 10.0°E and 45.1 to 45.9°N, both inclusive. The rectangular domain includes Milan and surrounding territory. | The CDS request uses north, west, south, east: `[45.9, 8.6, 45.1, 10.0]`. Inspect the seven-day pilot before accepting the real grid. |
-| Grid and coordinates | CDS distributes a regular geographic grid at 0.1° × 0.1°. The underlying ERA5-Land model has approximately 9 km native resolution. The project uses the delivered grid throughout. | Expect 9 latitude rows × 15 longitude columns = 135 centres before masking. Verify spacing, endpoints and ordering. Report discrepancies before normalizing the real case. |
-| Spatial reference and axis order | Interpret centres as geographic WGS 84 latitude and longitude in degrees. NetCDF arrays use `(time, lat, lon)`. Maps have longitude increasing to the right and latitude increasing upwards. | Preserve the coordinates. Check the southwest and northeast cells against their array indices. Draw cell boundaries at half steps around the centres. |
-| Raster footprint | Expected outer edges are **8.55–10.05°E, 45.05–45.95°N**. Footprint areas include full qualifying cells inside these edges. | Derive edges from the actual coordinates. With the project's spherical approximation, a cell at 45.5°N covers about 86.66 km². Latitude changes cell area. |
-| Measurement and time | Reanalysis of air temperature 2 m above ground. Each input value is the maximum of hourly samples on one UTC date. Reference input covers May–September of 1991–2020. Target input covers May–September 2022. | Expect 4,590 and 153 daily slices respectively. The reported interval is 1 June–31 August 2022 inclusive (92 dates). May and September supply reference-window context. |
+The case covers Milan and its surroundings on a 9 × 15 ERA5-Land grid. Cell centres span 8.6–10.0°E and 45.1–45.9°N at 0.1° spacing. Maps use the full cell edges, from 8.55–10.05°E and 45.05–45.95°N. A cell near 45.5°N covers about 86.66 km² using the project's spherical area formula. Areas vary with latitude. [File guide](v1.md) · [ERA5-Land ARCO](https://doi.org/10.24381/ee82e357)
 
-These dimensions describe the requested real case. The [committed example](workflow.md#synthetic-fixtures) uses a 2 × 3 grid. Its smaller extent lets a reviewer check every cell. The CDS catalogue distinguishes the delivered grid spacing from the model resolution. [Product documentation](https://cds.climate.copernicus.eu/datasets/derived-era5-land-daily-statistics?tab=overview)
-
-## Raster layers
-
-All layers share the input grid. Each value refers to one cell and one UTC date. The ranges below describe the meaning of each variable. Report the actual finite minimum and maximum from the selected data when displaying a continuous layer.
-
-| Layer | Measurement and value range | Map convention |
-| --- | --- | --- |
-| `tx_c` | Daily maximum air temperature, continuous °C. Values may fall below zero. | Sequential colour scale with °C legend. For side-by-side dates or thresholds, use common limits. |
-| `p90_c` | Local 90th-percentile reference temperature for the same month/day, continuous °C. | Use the temperature scale and identify the reference period and 15-day window. |
-| `excess_c` | Signed temperature difference, `tx_c − p90_c`, in °C. Zero means equality, positive means above threshold. | Diverging colours centred on zero. Persistence is encoded separately by the event flag. |
-| `heatwave_flag` | Categorical raster. `1` is a day in a qualifying run, `0` is observed without a qualifying run, `-1` is unknown. | Three distinct legend entries. Use an explicit unknown symbol or hatch. |
-| `footprint_id` | Nominal raster. Positive integers identify edge-connected components on that date, `0` is background, `-1` is unknown. | Discrete colours or component outlines. IDs restart each day and carry no intensity or rank. |
+The inputs cover May–September because the P90 window uses dates on either side of each summer day. The report covers the 92 days from 1 June to 31 August 2022. Each value is the daily maximum 2 m temperature in Celsius for one UTC date and grid cell.
 
 ## Three submission figures
 
-1. **Cell time series.** Identify the selected grid centre by longitude and latitude. Plot daily `tx_c` and `p90_c` in °C against UTC dates, highlight qualifying days and leave gaps where a series is missing.
-2. **Daily affected area.** Keep all 92 UTC dates on the axis. Sum the nominal spherical areas of cells with flag `1` in km². Report the number or fraction of known cells alongside the series. A fully observed day without a component is zero. For partial coverage, show the observed area and mark the day incomplete. For a wholly unknown day, show a gap. Use the flag raster to distinguish these cases because the summary CSV has no row for an empty day.
-3. **Peak-day footprint map.** Select the earliest date tied for the greatest positive observed area, comparing unrounded daily totals. Give the UTC date, observed area, coverage and data source. Show component boundaries or colours, background and unknown cells. Use the full cell-edge extent, label axes in degrees, show north upwards and preserve the approximate local aspect at the domain's mid-latitude. Render categorical cells without smoothing. With no positive area, report whether observations were available and omit the peak-day map.
+1. **Cell time series.** Plot daily temperature and its P90 threshold on the same °C axis. Give the cell coordinates, highlight heatwave days and show gaps for missing values.
+2. **Daily affected area.** Show the observed area in km² and the share of cells with data. A fully observed day with zero qualifying cells has area zero. Mark days with partial coverage and leave a gap when the whole grid is unknown.
+3. **Peak-day map.** Use the earliest date with the largest positive observed area, based on unrounded totals. Give the UTC date, area, coverage and data source. Show each component, background and unknown cells on the full grid. Keep the geographic aspect and draw the actual cells. If every observed daily area is zero, report that in the area summary.
 
-A component touching the edge may continue outside the study domain. The area represents qualifying grid cells inside the rectangle. Municipal land area, neighbourhood-scale temperature, population exposure and heatwave motion would each require additional data or analysis. The [file contract](v1.md) gives the cell-area formula, connectivity and missing-value rules.
+Use a sequential °C palette for temperature and P90 and a diverging palette centred on zero for temperature excess. Use distinct colours or outlines for footprint IDs. IDs identify components on a single day and restart the next day.
+
+The reported area measures the qualifying cells inside the study rectangle. Components at the edge can continue beyond it.
 
 ## Method references
 
