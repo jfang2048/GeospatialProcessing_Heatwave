@@ -37,6 +37,12 @@ python -m heatwave.ingest.download --profile full --verify-only
 
 Set up the CDS API and download the pilot successfully before running verification. An empty cache has no manifest to verify. The full case uses 155 monthly requests for May–September. Reruns reuse verified downloads. Move a corrupt cache entry aside before rerunning its profile. For authentication or terms errors, check the token and dataset terms and compare the pilot with **Show API request code** in the CDS form.
 
+### When CDS queues are full
+
+`accepted` means CDS has received the request. Check its ID in [Your Requests](https://cds.climate.copernicus.eu/requests). Keep one downloader active for the shared cache. It waits for and verifies each monthly result before submitting the next request. If a run stops, check the last request in CDS before restarting. A restart reuses verified local entries. [CDS request states](https://confluence.ecmwf.int/pages/viewpage.action?pageId=601307425) · [ECMWF service guidance](https://forum.ecmwf.int/t/data-stores-service-protection-measures-affecting-data-downloads-and-account-access-cds-ads-ewds-ecds/15481)
+
+The reference period is already 30 years (1991–2020). A 20-year reference would reduce the full plan from 155 to 105 monthly requests and change the percentile reference population. While CDS processes the full case, use the verified pilot for ingest checks and the [synthetic handoffs](../../integration/fixtures/README.md) for downstream development. Reuse a verified team snapshot for the same reference period if one is available.
+
 ## Normalization handoff to Events
 
 The normalizer reads the verified monthly entries of the full request plan. It checks each entry's manifest, request, byte count and SHA-256 before using its NetCDF payload. A direct NetCDF or a ZIP containing one NetCDF member is accepted. The separate seven-day pilot may coexist with the monthly entries. Missing entries stop the run.
