@@ -22,7 +22,7 @@ jobs:
       - uses: actions/setup-python@v5
         with:
           python-version: '3.12'
-      - run: python -m pip install '.[test]'
+      - run: python -m pip install '.[test,report]'
       - run: python -m pytest -q
 
   real-case:
@@ -34,7 +34,7 @@ jobs:
       - uses: actions/setup-python@v5
         with:
           python-version: '3.12'
-      - run: python -m pip install '.[test,arco]' matplotlib 'nbconvert>=7,<8' ipykernel
+      - run: python -m pip install '.[test,arco,report]' 'nbconvert>=7,<8' ipykernel
       - name: Read and aggregate ERA5-Land hourly temperatures
         env:
           CDSAPI_KEY: ${{ secrets.CDSAPI_KEY }}
@@ -46,4 +46,5 @@ jobs:
       - name: Verify the real outputs and execute the case notebook
         run: |
           python -m pytest -q tests/real/test_case.py
+          python -m heatwave.report
           python -m nbconvert --to notebook --execute notebooks/01_case.ipynb --output-dir reports/milan

@@ -5,14 +5,19 @@ build-backend = "setuptools.build_meta"
 [project]
 name = "gprocessing-heatwave"
 version = "0.1.0"
-description = "A course project for analysing daily regional heatwave footprints"
+description = "Find daily heatwave footprints on geospatial temperature grids"
+readme = "README.md"
 requires-python = ">=3.12"
 dependencies = ["numpy>=2", "xarray>=2025.3", "scipy>=1.15", "netCDF4>=1.7"]
 
 [project.optional-dependencies]
 download = ["cdsapi>=0.7"]
 arco = ["zarr>=3.1,<4", "fsspec", "aiohttp"]
+report = ["matplotlib>=3.10"]
 test = ["pytest>=8"]
+
+[project.urls]
+Repository = "https://github.com/jfang2048/GeospatialProcessing_Heatwave"
 
 [tool.setuptools.packages.find]
 where = ["src"]

@@ -16,6 +16,8 @@ Use a sequential °C palette for temperature and P90 and a diverging palette cen
 
 The reported area measures the qualifying cells inside the study rectangle. Components at the edge can continue beyond it.
 
+The report uses the cell edges with Matplotlib's flat raster shading. The daily area chart includes data coverage so gaps and zero-area days remain distinguishable. [Matplotlib raster grids](https://matplotlib.org/stable/gallery/images_contours_and_fields/pcolormesh_grids.html) · [IPCC Atlas display guidance](https://interactive-atlas.ipcc.ch/regional-information/guidance)
+
 ## Method references
 
 - Perkins and Alexander define the calendar-day P90 and three-day run used in this study. [Journal of Climate](https://doi.org/10.1175/JCLI-D-12-00383.1) · [ClimPACT2 guide](https://gerinberg.com/climpact/user_guide/html/appendixD.htm)

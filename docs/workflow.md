@@ -10,19 +10,23 @@ python -m heatwave.events.detect \
 python -m heatwave.footprints.summarize \
   --events data/processed/milan/events.nc --labels-out data/processed/milan/footprints.nc \
   --summary-out data/processed/milan/footprints.csv
-python -m nbconvert --to notebook --execute notebooks/01_case.ipynb --output-dir reports/milan
+python -m heatwave.report
 ```
 
-Open `data/processed/milan/footprints.csv` for the area and peak excess of each footprint. Open `reports/milan/01_case.ipynb` for the daily area series, a single-cell temperature series and the map of the peak day. [Output fields](v1.md) · [How to read the figures](geography.md)
+Open `data/processed/milan/footprints.csv` for the area and peak excess of each footprint. The report command saves `temperature.png`, `area.png` and `footprints.png` under `reports/milan/`. Open [the case notebook](../notebooks/01_case.ipynb) to see the same figures in Jupyter. The environment file includes Matplotlib. For a pip installation, use `python -m pip install -e '.[report]'`. [How to read the figures](geography.md)
 
 ## Tests
 
-| Command | What it needs |
-| --- | --- |
-| `python -m pytest -q` | The installed project |
-| `python -m pytest -q tests/real/test_pilot.py` | The seven-day CDS file in `data/raw/cds/` |
-| `python -m pytest -q tests/real/test_case.py` | The completed Milan case |
-| `python -m pytest -q tests/real` | The completed case, pilot and raw July 1991 and July 2022 files from the CDS daily route |
+Run your check after writing your stage's files. Use the same `HEATWAVE_RUN_DIR` when checking a case outside the default directory.
+
+| Stage | Offline check | Check your Milan outputs |
+| --- | --- | --- |
+| FJ · Ingest | `python -m pytest -q tests/unit/test_arco.py tests/unit/test_normalize.py tests/unit/test_ingest_check.py` | `python -m heatwave.ingest.check`. Add `--pilot` and the raw CDS pilot path for a second-source comparison. |
+| YY · Events | `python -m pytest -q tests/unit/test_events.py` | `python -m pytest -q tests/real/test_case.py -k events_against` |
+| FY · Footprints | `python -m pytest -q tests/unit/test_footprints.py` | `python -m pytest -q tests/real/test_case.py -k footprint_labels` |
+| Report | `python -m pytest -q tests/unit/test_report.py` | `python -m heatwave.report` checks that the inputs agree and writes the figures. |
+
+Run `python -m pytest -q` for all offline tests. Run `python -m pytest -q tests/real/test_case.py` for the completed case. The [CDS pilot test](../tests/real/test_pilot.py) needs the raw seven-day file in `data/raw/cds/`.
 
 ## Common problems
 
