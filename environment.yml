@@ -9,6 +9,9 @@ dependencies:
   - netcdf4=1.7
   - matplotlib=3.10
   - cdsapi=0.7
+  - "zarr>=2.18,<3"
+  - fsspec
+  - aiohttp
   - jupyterlab=4
   - nbconvert=7
   - pytest=8

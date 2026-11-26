@@ -12,7 +12,7 @@ conda activate gprocessing-heatwave
 jupyter lab notebooks/00_fixture.ipynb
 ```
 
-For the real case, set up CDS, download the data, then follow the run commands to produce `events.nc`, `footprints.nc`, `footprints.csv` and the case notebook. If you have the team's `baseline.nc` and `target.nc`, start at Events. [CDS setup](docs/cds-setup.md) · [Download and share data](docs/data.md) · [Run and test the case](docs/workflow.md)
+For the real case, set up CDS access, read the ERA5-Land ARCO archive, then follow the run commands to produce `events.nc`, `footprints.nc`, `footprints.csv` and the case notebook. If you have the team's `baseline.nc` and `target.nc`, start at Events. [CDS setup](docs/cds-setup.md) · [Download and share data](docs/data.md) · [Run and test the case](docs/workflow.md)
 
 ## Repository layout
 
@@ -28,8 +28,9 @@ docs/
   geography.md                  Study area, method references and map specifications
 heatwave/
   ingest/                       Prepare the two NetCDF inputs (FJ)
-    download.py                 Download or import provider data
-    normalize.py                Write baseline.nc and target.nc
+    arco.py                     Read hourly ARCO and write the two input cubes
+    download.py                 Download or import the CDS daily product
+    normalize.py                Convert cached CDS daily files to the two cubes
     requests.py / cache.py      Request plan and on-disk cache
     provider.py                 Decode provider dates, coordinates and values
   events/detect.py              Calculate percentiles and detect heatwave days (YY)

@@ -3,7 +3,9 @@
 import numpy as np
 import xarray as xr
 
+from heatwave._handoff import validate_grid
 from heatwave.ingest.cache import netcdf_path
+from heatwave.ingest.requests import AREA
 
 
 def check_axis(coord, name, units, first, last):
@@ -63,3 +65,26 @@ def validate_pilot(payload, request):
     _, _, _, temperatures = load_month(payload, request)
     if not np.isfinite(temperatures).any():
         raise ValueError("pilot contains no observed temperature")
+
+
+def temperature_cube(dates, lat, lon, tx_c, *, source, doi):
+    """Build the common v1 Celsius output for either ERA5-Land source."""
+    first, last = dates[[0, -1]].astype("datetime64[D]")
+    cube = xr.Dataset(
+        {"tx_c": (("time", "lat", "lon"), tx_c, {"units": "degC"})},
+        coords={
+            "time": dates,
+            "lat": ("lat", lat, {"units": "degrees_north"}),
+            "lon": ("lon", lon, {"units": "degrees_east"}),
+        },
+        attrs={
+            "contract_version": "1",
+            "source": source,
+            "source_doi": doi,
+            "requested_bounds": ", ".join(map(str, AREA)),
+            "requested_period": f"{first} to {last}, May-September",
+            "day_timezone": "UTC",
+        },
+    )
+    validate_grid(cube)
+    return cube

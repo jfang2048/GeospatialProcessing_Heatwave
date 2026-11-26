@@ -1,9 +1,9 @@
 # Run the Milan case
 
-Install the [environment](../README.md#quick-start) and [download the data](data.md). Run these commands in order from the repository root. If you already have both input files in `runs/milan/`, start with the Events command. Use a fresh output directory for a new run and update the paths together.
+Install the [environment](../README.md#quick-start) and [set up data access](data.md). Run these commands in order from the repository root. If you already have both input files in `runs/milan/`, start with the Events command. Use a fresh output directory for a new run and update the paths together.
 
 ```bash
-python -m heatwave.ingest.normalize --cache-dir data/raw/cds --baseline-out runs/milan/baseline.nc --target-out runs/milan/target.nc
+python -m heatwave.ingest.arco
 python -m heatwave.events.detect --baseline runs/milan/baseline.nc --target runs/milan/target.nc --out runs/milan/events.nc
 python -m heatwave.footprints.summarize --events runs/milan/events.nc --labels-out runs/milan/footprints.nc --summary-out runs/milan/footprints.csv
 jupyter lab notebooks/01_case.ipynb
@@ -21,7 +21,7 @@ python -m pytest -q tests/real/test_pilot.py
 python -m pytest -q tests/real/test_case.py
 ```
 
-The first command uses local test data. The second needs the seven-day CDS download. The third needs the completed outputs in `runs/milan/`. Run `python -m pytest -q tests/real` with the original downloads and outputs to also compare raw July data with both normalized files. Set `HEATWAVE_CACHE_DIR` or `HEATWAVE_RUN_DIR` for other locations.
+The first command uses local test data. The second needs the seven-day CDS download. The third needs the completed outputs in `runs/milan/`. For the older CDS route, run `python -m pytest -q tests/real` once both raw July downloads and outputs are available. Set `HEATWAVE_CACHE_DIR` or `HEATWAVE_RUN_DIR` for other locations.
 
 ## Synthetic fixtures
 

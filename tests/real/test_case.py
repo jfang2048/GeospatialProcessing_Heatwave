@@ -26,7 +26,7 @@ def test_normalized_milan_cube(name, years, load_output):
     cube = load_output(name)
     assert cube.attrs["contract_version"] == "1"
     assert cube.attrs["day_timezone"] == "UTC"
-    assert cube.attrs["source_doi"] == "10.24381/cds.e9c9c792"
+    assert cube.attrs["source_doi"] in {"10.24381/ee82e357", "10.24381/cds.e9c9c792"}
     for attr in ("source", "requested_period", "requested_bounds"):
         assert str(cube.attrs[attr]).strip()
     assert cube.tx_c.dims == DIMS

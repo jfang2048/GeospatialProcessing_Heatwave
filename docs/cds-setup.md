@@ -1,7 +1,6 @@
-# Set up CDS access
+# Set up the CDS token
 
-1. Sign in to CDS and accept the terms on the ERA5-Land daily statistics download page. [Dataset page](https://cds.climate.copernicus.eu/datasets/derived-era5-land-daily-statistics?tab=download)
-2. Copy your API URL and personal access token from the signed-in setup page to `~/.cdsapirc`. Keep the token in this local file. [CDS API setup](https://cds.climate.copernicus.eu/how-to-api)
+1. Sign in to CDS. Copy your API URL and token into your local `~/.cdsapirc`. [CDS API setup](https://cds.climate.copernicus.eu/how-to-api)
 
    ```text
    url: https://cds.climate.copernicus.eu/api
@@ -12,17 +11,6 @@
    chmod 600 ~/.cdsapirc
    ```
 
-3. Activate the [project environment](../README.md#quick-start). Run the seven-day download.
+2. Activate the [project environment](../README.md#quick-start). If you created it before ARCO support, update it with `conda env update -n gprocessing-heatwave -f environment.yml`. Then follow the [data guide](data.md).
 
-   ```bash
-   python -m heatwave.ingest.download --profile pilot
-   ```
-
-   For a local terminal with `uv`, this is the equivalent download command.
-
-   ```bash
-   uv run --isolated --no-project --python 3.12 --with 'cdsapi>=0.7.7' \
-     python -m heatwave.ingest.download --profile pilot
-   ```
-
-See the [data guide](data.md) for pilot import, the full download and how to share the input files.
+For the separate seven-day pilot downloaded from the CDS daily statistics product, accept its terms once on the [dataset page](https://cds.climate.copernicus.eu/datasets/derived-era5-land-daily-statistics?tab=download).

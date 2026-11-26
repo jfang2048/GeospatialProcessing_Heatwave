@@ -5,7 +5,7 @@ Each owner maintains their module's code, acceptance checks and documentation. U
 | Owner | Module | Branch | Starting point |
 | --- | --- | --- | --- |
 | FJ | `heatwave/ingest/` | `ingest/<task>` | [CDS data guide](docs/data.md) |
-| YY | `heatwave/events/` | `events/<task>` | [Baseline and target files](docs/data.md#share-the-two-input-files) |
+| YY | `heatwave/events/` | `events/<task>` | [Baseline and target files](docs/data.md) |
 | FY | `heatwave/footprints/` | `footprints/<task>` | [Events raster and daily footprint handoff](docs/v1.md) |
 
 FJ maintains shared files and dependencies. Use issues or PR reviews to request shared changes. For a handoff change, include a failing example, affected inputs and outputs, and the proposed contract revision. The integration owner versions the contract after the affected owners agree.

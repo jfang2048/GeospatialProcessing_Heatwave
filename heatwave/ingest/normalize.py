@@ -6,12 +6,11 @@ from pathlib import Path
 from zipfile import BadZipFile
 
 import numpy as np
-import xarray as xr
 
-from heatwave._handoff import publish_outputs, validate_grid
+from heatwave._handoff import publish_outputs
 from heatwave.ingest.cache import cache_entry, cached_payload
-from heatwave.ingest.provider import load_month
-from heatwave.ingest.requests import AREA, DATASET, DATASET_DOI, request_plan
+from heatwave.ingest.provider import load_month, temperature_cube
+from heatwave.ingest.requests import DATASET, DATASET_DOI, request_plan
 
 
 def normalize(cache_dir, baseline_out, target_out):
@@ -37,26 +36,10 @@ def normalize(cache_dir, baseline_out, target_out):
                     raise ValueError(f"{payload}: latitude or longitude differs from other partitions")
                 all_dates.append(dates)
                 all_values.append(tx_c)
-            dates = np.concatenate(all_dates)
-            first_day, last_day = dates[[0, -1]].astype("datetime64[D]")
-            cube = xr.Dataset(
-                data_vars={"tx_c": (("time", "lat", "lon"), np.concatenate(all_values), {"units": "degC"})},
-                coords={
-                    "time": dates,
-                    "lat": ("lat", grid[0], {"units": "degrees_north"}),
-                    "lon": ("lon", grid[1], {"units": "degrees_east"}),
-                },
-                attrs={
-                    "contract_version": "1",
-                    "source": DATASET,
-                    "source_doi": DATASET_DOI,
-                    "requested_bounds": ", ".join(map(str, AREA)),
-                    "requested_period": f"{first_day} to {last_day}, May-September",
-                    "day_timezone": "UTC",
-                },
-            )
-            validate_grid(cube)
-            cube.to_netcdf(output)
+            temperature_cube(
+                np.concatenate(all_dates), *grid, np.concatenate(all_values),
+                source=DATASET, doi=DATASET_DOI,
+            ).to_netcdf(output)
 
 
 def main(argv=None):
