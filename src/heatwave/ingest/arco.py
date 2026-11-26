@@ -91,7 +91,7 @@ def run(run_dir, token):
 
 def main(argv=None):
     parser = argparse.ArgumentParser(description=__doc__)
-    parser.add_argument("--run-dir", type=Path, default=Path("runs/milan"))
+    parser.add_argument("--run-dir", type=Path, default=Path("data/processed/milan"))
     args = parser.parse_args(argv)
     token = ""
     try:

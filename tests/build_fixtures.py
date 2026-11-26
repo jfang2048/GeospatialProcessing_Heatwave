@@ -8,7 +8,7 @@ import numpy as np
 from scipy.io import netcdf_file
 
 
-HERE = Path(__file__).resolve().parent
+HERE = Path(__file__).resolve().parents[1] / "data" / "examples" / "synthetic"
 EPOCH = date(1970, 1, 1)
 LAT = [45.4, 45.5]
 LON = [9.1, 9.2, 9.3]

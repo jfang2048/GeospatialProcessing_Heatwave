@@ -4,9 +4,9 @@ Each owner maintains their module's code, acceptance checks and documentation. U
 
 | Owner | Module | Branch | Starting point |
 | --- | --- | --- | --- |
-| FJ | `heatwave/ingest/` | `ingest/<task>` | [CDS data guide](docs/data.md) |
-| YY | `heatwave/events/` | `events/<task>` | [Baseline and target files](docs/data.md) |
-| FY | `heatwave/footprints/` | `footprints/<task>` | [Events raster and daily footprint handoff](docs/v1.md) |
+| FJ | `src/heatwave/ingest/` | `ingest/<task>` | [CDS data guide](docs/data.md) |
+| YY | `src/heatwave/events/` | `events/<task>` | [Baseline and target files](docs/data.md) |
+| FY | `src/heatwave/footprints/` | `footprints/<task>` | [Events raster and daily footprint handoff](docs/v1.md) |
 
 FJ maintains shared files and dependencies. Use issues or PR reviews to request shared changes. For a handoff change, include a failing example, affected inputs and outputs, and the proposed contract revision. The integration owner versions the contract after the affected owners agree.
 
@@ -39,7 +39,7 @@ git log --no-use-mailmap --format=fuller --stat -m -p origin/main..HEAD
 ```
 
 - Run the publication check after committing, from the repository root. It checks the author and committer pair on every outgoing commit and flags tracked paths matching the checkout's active ignore rules. Run it for each ref you intend to publish, using its base and tip. Inspect the tag message and tagger separately for an annotated tag.
-- Review commit messages (including co-author trailers), filenames and diffs for private information, including lines removed in later commits. Inspect changed binary files, NetCDF attributes, and notebook cells, outputs and metadata. A credential or private URL in an ordinary source file can pass the automated check. Store executed notebooks under `runs/`. Keep any example settings free of live values.
+- Review commit messages (including co-author trailers), filenames and diffs for private information, including lines removed in later commits. Inspect changed binary files, NetCDF attributes, and notebook cells, outputs and metadata. A credential or private URL in an ordinary source file can pass the automated check. Store executed notebooks under `reports/`. Keep any example settings free of live values.
 - Fix the commit that contains a finding and rerun the checks before pushing. If private information has already reached GitHub, notify the team privately and rotate any exposed credentials. Coordinate history cleanup with the integration owner.
 
 ## Work and merge rules
@@ -47,7 +47,7 @@ git log --no-use-mailmap --format=fuller --stat -m -p origin/main..HEAD
 1. Each member makes their own commits and pushes their own branch to the project repository. Start each task from current `main` and open one PR. Identify the affected handoff and run the applicable real-data checks. Include the command and result. Record any input-access blocker explicitly.
 2. Treat stage outputs as immutable inputs to the next module. Pass paths explicitly and use separate run directories. Keep edits within your owned paths.
 3. Record the input source, output units and date range. A teammate reviews each PR. After merging, affected owners verify the next handoff.
-4. In the PR description, give the input files, changed handoff, test command and result. Set `HEATWAVE_RUN_DIR` to the completed local case directory and run `python -m pytest -ra` for the default real-data suite. CI checks without provider-backed inputs establish code readiness only. Use the [work plan](docs/workflow.md#tests) for full real-case verification.
+4. In the PR description, give the input files, changed handoff, test command and result. Set `HEATWAVE_RUN_DIR` to the completed local case directory and run `python -m pytest -ra tests/real/test_case.py` for the real case. CI checks without provider-backed inputs establish code readiness only. Use the [work plan](docs/workflow.md#tests) for full real-case verification.
 5. Review and publish only the code, documentation and sanitized evidence needed to reproduce the run. Apply the publication checklist before the first push to a topic branch as well as later pushes. GitHub displays the accounts opening and reviewing PRs.
 
 ## Code comments and docstrings

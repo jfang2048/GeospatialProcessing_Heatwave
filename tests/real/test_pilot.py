@@ -9,7 +9,7 @@ import numpy as np
 def test_real_cds_pilot(load_raw_kelvin):
     temperature = load_raw_kelvin(2022, 15, 21)
     assert temperature.shape == (7, 9, 15)
-    sample = Path(__file__).resolve().parents[2] / "notebooks" / "data" / "pilot_milan_cell.csv"
+    sample = Path(__file__).resolve().parents[2] / "data" / "examples" / "pilot_milan_cell.csv"
     with sample.open(encoding="utf-8", newline="") as source:
         rows = list(csv.DictReader(source))
     assert {(float(row["lat_deg_north"]), float(row["lon_deg_east"])) for row in rows} == {(45.5, 9.2)}

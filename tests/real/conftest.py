@@ -17,7 +17,7 @@ ROOT = Path(__file__).resolve().parents[2]
 
 @pytest.fixture(scope="session")
 def run_dir():
-    return Path(os.getenv("HEATWAVE_RUN_DIR", ROOT / "runs" / "milan"))
+    return Path(os.getenv("HEATWAVE_RUN_DIR", ROOT / "data" / "processed" / "milan"))
 
 
 @pytest.fixture(scope="session")

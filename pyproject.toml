@@ -11,11 +11,13 @@ dependencies = ["numpy>=2", "xarray>=2025.3", "scipy>=1.15", "netCDF4>=1.7"]
 
 [project.optional-dependencies]
 download = ["cdsapi>=0.7"]
-arco = ["zarr>=2.18,<3", "fsspec", "aiohttp"]
+arco = ["zarr>=3.1,<4", "fsspec", "aiohttp"]
 test = ["pytest>=8"]
 
 [tool.setuptools.packages.find]
+where = ["src"]
 include = ["heatwave*"]
+namespaces = false
 
 [tool.pytest.ini_options]
-testpaths = ["heatwave/ingest/tests"]
+testpaths = ["tests/unit"]

@@ -11,6 +11,6 @@
    chmod 600 ~/.cdsapirc
    ```
 
-2. Activate the [project environment](../README.md#quick-start). If you created it before ARCO support, update it with `conda env update -n gprocessing-heatwave -f environment.yml`. Then follow the [data guide](data.md).
+2. Activate the [project environment](../README.md#quick-start). If you already have the environment, update it with `conda env update -n gprocessing-heatwave -f environment.yml`. Install this checkout with `python -m pip install -e .` after updating the environment. Then follow the [data guide](data.md).
 
 For the separate seven-day pilot downloaded from the CDS daily statistics product, accept its terms once on the [dataset page](https://cds.climate.copernicus.eu/datasets/derived-era5-land-daily-statistics?tab=download).
